@@ -1,0 +1,32 @@
+
+# Secrets and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node.js
+node_modules/
+dist/
+
+# Model and dataset caches
+.cache/
+huggingface/
+
+
+# Frontend environment and generated files
+evidence-grounded-rag-frontend/.env
+evidence-grounded-rag-frontend/.env.*
+!evidence-grounded-rag-frontend/.env.example
+evidence-grounded-rag-frontend/node_modules/
+evidence-grounded-rag-frontend/dist/
+
+# Tool-specific files
+.freebuff/
