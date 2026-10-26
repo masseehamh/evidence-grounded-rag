@@ -3,6 +3,10 @@ export const demoResult = {
   verification_status: "PARTIALLY_VERIFIED",
   original_answer: "The sample evidence says the prototype was tested with 120 examples. It achieved 91% accuracy and reduced hallucinations by 40% in every setting.",
   corrected_answer: "The sample evidence says the prototype was tested with 120 examples and achieved 91% accuracy. The evidence does not establish that hallucinations were reduced by 40% in every setting.",
+  // Status of the corrected answer (illustrative, like the rest of this file):
+  // the unsupported claim was removed, so only supported content remains.
+  corrected_status: "SUPPORTED",
+  corrected_evidence: "",
   claims: [
     {
       claim: "The prototype was tested with 120 examples.",

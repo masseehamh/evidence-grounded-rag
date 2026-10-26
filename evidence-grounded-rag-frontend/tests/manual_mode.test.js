@@ -12,10 +12,12 @@ test("manual mode sends question, mode and evidence (trimmed) to /api/ask", () =
   assert.deepEqual(payload, { question: QUESTION, mode: "manual", evidence: EVIDENCE });
 });
 
-test("web and document modes do not leak manual evidence", () => {
-  assert.deepEqual(api.buildAskPayload({ mode: "web", question: "q", evidence: "ignored" }), { question: "q", mode: "web" });
+test("only manual mode carries the pasted evidence", () => {
   assert.deepEqual(api.buildAskPayload({ mode: "document", question: "q", documentId: "abc" }),
     { question: "q", mode: "document", document_id: "abc" });
+  // Automatic online retrieval was removed from the final scope.
+  assert.throws(() => api.buildAskPayload({ mode: "web", question: "q", evidence: "ignored" }),
+    /manual or document/);
 });
 
 test("askBackend POSTs JSON to the configured URL with the evidence intact", async () => {

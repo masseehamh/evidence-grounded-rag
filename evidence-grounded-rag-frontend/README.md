@@ -38,7 +38,7 @@ To create a production build, run `npm run build`. To preview that build, run `n
 
 - **Demo mode** is clearly labelled and uses static, illustrative sample results only. It does not call an AI model, search the internet, or claim that sample output is real.
 - **Backend mode** is active when `VITE_API_BASE_URL` is set. Requests are sent to the configured API. If the API is unavailable or returns an error, the UI displays an error and does not silently fall back to sample output.
-- Internet Search is never simulated. In demo mode it is disabled. With a backend configured, the frontend requests Internet Search mode from `POST /api/ask`; the backend must implement actual retrieval and return real sources.
+- **Scope:** only two evidence modes exist in the final demo — **Manual evidence** and **Upload document**. Automatic online retrieval was removed: `buildAskPayload` rejects `mode: "web"`, the UI has no Internet-search card, and `POST /api/ask` answers 400 for it.
 
 Environment variables are read at build/start time by Vite. Restart the dev server after editing `.env`.
 
@@ -103,12 +103,13 @@ Manual evidence request:
 }
 ```
 
-Internet Search request:
+Document request (send it after `POST /api/upload` returned a `document_id`):
 
 ```json
 {
-  "question": "What are the latest findings on topic X?",
-  "mode": "web"
+  "question": "When did Gandhi assume leadership of the Indian National Congress?",
+  "mode": "document",
+  "document_id": "the id returned by POST /api/upload"
 }
 ```
 
@@ -119,6 +120,8 @@ Suggested response:
   "verification_status": "PARTIALLY_VERIFIED",
   "original_answer": "Original generated answer.",
   "corrected_answer": "Evidence-grounded corrected answer.",
+  "corrected_status": "SUPPORTED",
+  "corrected_evidence": "The evidence sentence the corrected answer was taken from, when it was extracted.",
   "claims": [
     {
       "claim": "A claim from the answer.",
@@ -142,21 +145,31 @@ Suggested response:
 }
 ```
 
-Allowed claim statuses in the UI: `SUPPORTED`, `CONTRADICTED`, `NOT_ENOUGH_EVIDENCE`. Verification status is displayed as returned by the backend. Confidence is expected as a number from 0 to 1 or 0 to 100. Missing optional fields are shown as unavailable.
+Allowed claim statuses in the UI: `SUPPORTED`, `CONTRADICTED`, `NOT_ENOUGH_EVIDENCE`. Verification status is displayed as returned by the backend. `corrected_status` (SUPPORTED / CONTRADICTED / NOT_ENOUGH_EVIDENCE) drives the badge on the corrected-answer card; if a backend omits it, the card shows a neutral `UNCHECKED` badge instead of a hard-coded one. Confidence is expected as a number from 0 to 1 or 0 to 100. Missing optional fields are shown as unavailable.
 
 ### `POST /api/upload`
 
-`multipart/form-data`, field name `file`. Suggested response:
+`multipart/form-data`, field name `file`. **Only plain-text `.txt` files, up to 2 MB.** The client checks
+both limits first (`validateUploadFile` in `src/api.js`) and shows the reason immediately; the backend
+enforces them again:
+
+| Case | Backend response | Message shown |
+|---|---|---|
+| not a `.txt` file | `415` | "This notebook currently supports .txt uploads only." |
+| larger than 2 MB | `413` | "File is too large. Maximum size is 2 MB." |
+| empty file | `400` | "The uploaded text file is empty." |
+
+Suggested response:
 
 ```json
 {
   "document_id": "opaque-document-id",
-  "filename": "document.pdf",
-  "message": "Document uploaded and ready for questions."
+  "filename": "einstein.txt",
+  "message": "Text document ready."
 }
 ```
 
-The upload response shape is provisional. The frontend sends the file and retains the returned `document_id` for a subsequent `/api/ask` request:
+The frontend keeps the returned `document_id` for a subsequent `/api/ask` request:
 
 ```json
 {
@@ -167,6 +180,44 @@ The upload response shape is provisional. The frontend sends the file and retain
 ```
 
 If your pipeline expects the file to be sent with the question in one request, update `src/api.js` and the `handleSubmit` flow accordingly.
+
+### Errors and timeouts
+
+Every request in `src/api.js` fails with a readable message instead of hanging:
+
+| Situation | Message |
+|---|---|
+| backend unreachable | "Could not reach the backend. Check that FastAPI is running and VITE_API_BASE_URL is correct." |
+| no answer within the timeout (15 s health, 60 s upload, 180 s question) | "The backend did not answer in time…" |
+| HTTP error with JSON `detail` | the backend's own `detail` text |
+| HTML error page (expired tunnel) or non-JSON body | explains that the tunnel/backend returned a web page, with recovery hints |
+
+## Deployment (Render Static Site)
+
+The frontend is a plain static Vite site — deploying it does **not** deploy the backend. The backend runs
+separately (the notebook's FastAPI + ngrok cell in Colab, or `python backend-tests/serve_test_api.py`
+locally).
+
+Exact settings for the existing Render Static Site:
+
+| Setting | Value |
+|---|---|
+| Service type | Static Site |
+| Build command | `npm install && npm run build` |
+| Publish directory | `dist` |
+| Runtime environment variable | `VITE_API_BASE_URL` = origin of the running backend, e.g. `https://xxxx.ngrok-free.dev` (no trailing slash) |
+
+**Important:** Vite inlines `VITE_API_BASE_URL` at **build** time. On Render it must be set as an
+environment variable on the service and the site must be **re-deployed** (Render → Manual Deploy) after
+any change to it; editing the variable alone does not update an already-built site.
+
+Configuration rules:
+
+- Never hardcode the ngrok/backend URL in `src/` — it always comes from `VITE_API_BASE_URL`.
+- `.env` is gitignored; only `.env.example` (no secrets) is committed. Local development copies the
+  backend URL into `.env`.
+- The backend currently sends `Access-Control-Allow-Origin: *` (prototype setting, noted in the notebook).
+  For anything beyond the demo, restrict `allow_origins` to the Render site origin.
 
 ## FastAPI integration notes
 
@@ -182,10 +233,10 @@ The FastAPI adapter that wraps the notebook functions already exists and is used
 
 - FastAPI adapter around the existing Python/Colab functions: done (notebook cell with the FastAPI app).
 - `/api/ask`, `/api/upload`, and `/api/health` request/response formats: done (see above).
-- Real Internet Search retrieval and trustworthy source metadata: done in the notebook (DuckDuckGo + fetched page text; snippets are never evidence).
+- Automatic web retrieval: **removed from the final demo scope** (the final application accepts pasted evidence and uploaded documents only).
 - File parsing, chunking, retrieval, and document-ID lifecycle: done for `.txt` uploads (chunking + MiniLM retrieval + existing pipeline).
 - Claim extraction, NLI labels/confidence, numeric/entity consistency checks, and correction metadata: done (FLAN-T5 generation -> claims -> MiniLM evidence -> DeBERTa NLI -> number/entity checks -> correction).
-- CORS, request size limits, allowed file types, timeouts, and production deployment: partially (CORS open for prototype; size limit and `.txt`-only check present; production hardening still open).
+- CORS, request size limits, allowed file types, timeouts, and production deployment: CORS open for prototype (`allow_origins=["*"]`), `.txt`-only + 2 MB limits enforced on both sides, client-side timeouts for health/upload/ask; production hardening (restricted origins) still open.
 
 ## Tests
 
@@ -195,7 +246,10 @@ Run:
 npm test
 ```
 
-The built-in Node test suite checks the response normalizer and API URL helper. It does not test model quality or a live backend. Build check:
+The built-in Node test suite checks the response normalizer, the API URL helper, upload validation and
+the honest-UI guards. `tests/e2e_backend.test.js` additionally drives a **running** backend (both supported
+workflows, contradicted/insufficient cases and bad uploads) when `E2E_API_URL` is set — see
+`../backend-tests/README.md`. It does not test model quality. Build check:
 
 ```bash
 npm run build

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { API_BASE_URL, isApiConfigured, checkHealth, uploadDocument, askBackend, normalizeResult, buildAskPayload } from "./api.js";
+import { API_BASE_URL, isApiConfigured, checkHealth, uploadDocument, askBackend, normalizeResult, buildAskPayload, validateUploadFile } from "./api.js";
 import { demoResult } from "./demoData.js";
 
 const EXAMPLE_QUESTION = "What results does the evidence report, and which claims are not established?";
@@ -22,6 +22,7 @@ function App() {
   const [file, setFile] = useState(null);
   const [documentId, setDocumentId] = useState("");
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
   const [backendStatus, setBackendStatus] = useState(isApiConfigured ? "checking" : "demo");
@@ -61,11 +62,26 @@ function App() {
   async function handleUpload() {
     if (!file) throw new Error("Choose a document to upload first.");
     if (!isApiConfigured) throw new Error("Document upload needs a connected FastAPI backend. Demo mode does not process files.");
-    const uploaded = await uploadDocument(file);
-    const id = uploaded.document_id ?? uploaded.id;
-    if (!id) throw new Error("The upload endpoint did not return a document_id. Confirm the agreed API response format.");
-    setDocumentId(String(id));
-    return String(id);
+    const problem = validateUploadFile(file);
+    if (problem) throw new Error(problem);
+    setUploading(true);
+    try {
+      const uploaded = await uploadDocument(file);
+      const id = uploaded.document_id ?? uploaded.id;
+      if (!id) throw new Error("The upload endpoint did not return a document_id. Confirm the agreed API response format.");
+      setDocumentId(String(id));
+      return String(id);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function handleFileChange(event) {
+    const chosen = event.target.files?.[0] || null;
+    setFile(chosen);
+    setDocumentId("");
+    // Type/size/emptiness problems are reported immediately, before any request.
+    setError(chosen ? (validateUploadFile(chosen) || "") : "");
   }
 
   async function handleSubmit(event) {
@@ -85,10 +101,16 @@ function App() {
       setError("Choose a document before asking a question.");
       return;
     }
+    if (mode === "document" && file && !documentId) {
+      const problem = validateUploadFile(file);
+      if (problem) {
+        setError(problem);
+        return;
+      }
+    }
     setBusy(true);
     try {
       if (!isApiConfigured) {
-        if (mode === "web") throw new Error("Internet Search is unavailable in demo mode. Configure a real FastAPI backend to enable retrieval.");
         if (mode === "document") throw new Error("Document processing is unavailable in demo mode. Connect the FastAPI upload and ask endpoints.");
         setResult(normalizeResult(demoResult));
         setUsedDemo(true);
@@ -161,9 +183,7 @@ function App() {
               <div className="mode-grid">
                 <ModeCard active={mode === "manual"} icon="≡" title="Manual evidence" desc="Paste source text directly." onClick={() => selectMode("manual")} />
                 <ModeCard active={mode === "document"} icon="⇧" title="Upload document" desc="Ask about a file you provide." onClick={() => selectMode("document")} />
-                <ModeCard active={mode === "web"} icon="◎" title="Internet search" desc="Retrieve sources online." onClick={() => selectMode("web")} disabled={!isApiConfigured} />
               </div>
-              {mode === "web" && !isApiConfigured && <div className="notice"><strong>Internet Search is disabled in demo mode.</strong> Connect a backend that performs real retrieval to enable this option. No search results will be fabricated.</div>}
               <form className="question-form panel" onSubmit={handleSubmit}>
                 <div className="form-title"><span className="step-number">01</span><div><h2>Your question</h2><p>Be specific about what you want the evidence to establish.</p></div></div>
                 <label htmlFor="question">Question</label>
@@ -173,12 +193,11 @@ function App() {
                   <textarea id="evidence" value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Paste the evidence that the answer must be grounded in..." rows={7} />
                 </>}
                 {mode === "document" && <div className="upload-box">
-                  <div className="upload-symbol">⇧</div><div><strong>{file ? file.name : "Choose a document"}</strong><p>Upload support depends on your FastAPI backend and accepted file types.</p><label className="button button-ghost file-button" htmlFor="document-file">Browse files</label><input id="document-file" type="file" accept=".pdf,.txt,.md,.docx,.csv" onChange={(e) => { setFile(e.target.files?.[0] || null); setDocumentId(""); }} /></div>
-                  {documentId && <StatusPill status="SUPPORTED" />}
+                  <div className="upload-symbol">⇧</div><div><strong>{file ? file.name : "Choose a .txt document"}</strong><p>Plain-text .txt file, up to 2 MB. The document is sent only to the configured backend.</p><label className="button button-ghost file-button" htmlFor="document-file">Browse files</label><input id="document-file" type="file" accept=".txt,text/plain" onChange={handleFileChange} /></div>
+                  {documentId && <span className="upload-ready"><span aria-hidden="true">✓</span> Uploaded — ready for questions</span>}
                 </div>}
-                {mode === "web" && <div className="web-mode-note"><span className="web-symbol">◎</span><div><strong>Live source retrieval</strong><p>The connected backend must search the internet and return source titles, URLs, and evidence excerpts. The frontend will only display sources returned by that backend.</p></div></div>}
                 {error && <div className="error-message" role="alert"><strong>Could not process request</strong><span>{error}</span></div>}
-                <div className="form-footer"><span className="privacy-note">⌑ Your input is sent only to the configured backend.</span><button className="button button-primary" type="submit" disabled={busy}>{busy ? <><span className="spinner" /> Processing…</> : <>Run verification <span>→</span></>}</button></div>
+                <div className="form-footer"><span className="privacy-note">⌑ Your input is sent only to the configured backend.</span><button className="button button-primary" type="submit" disabled={busy}>{busy ? <><span className="spinner" /> {uploading ? "Uploading document…" : "Processing…"}</> : <>Run verification <span>→</span></>}</button></div>
               </form>
               <div className="example-row"><span>Need a quick demo?</span><button onClick={loadExample}>Load example question and evidence <span>↗</span></button></div>
             </section>
@@ -199,7 +218,7 @@ function ModeCard({ active, icon, title, desc, onClick, disabled }) {
 
 function HomePage({ onStart, onExample }) {
   const steps = [
-    ["01", "Retrieve evidence", "Find relevant passages from provided text, documents, or online sources."],
+    ["01", "Retrieve evidence", "Find relevant passages in the evidence you paste or in the document you upload."],
     ["02", "Generate an answer", "Use the retrieved evidence as context for the response."],
     ["03", "Verify each claim", "Check claims against evidence using NLI and consistency signals."],
     ["04", "Correct the answer", "Revise or remove unsupported claims and show the evidence trail."]
@@ -231,14 +250,20 @@ function ResultsPage({ result, usedDemo, onAskAgain }) {
   const supported = result.claims.filter((c) => c.status === "SUPPORTED").length;
   const contradicted = result.claims.filter((c) => c.status === "CONTRADICTED").length;
   const uncertain = result.claims.filter((c) => c.status === "NOT_ENOUGH_EVIDENCE").length;
+  // The backend says plainly when the evidence cannot answer the question; the UI
+  // must explain that too, instead of showing a silent or empty corrected answer.
+  const insufficient = result.corrected_status === "NOT_ENOUGH_EVIDENCE" ||
+    /not sufficient|no answer was generated/i.test(result.corrected_answer || "") ||
+    /NOT[ _]ENOUGH[ _]EVIDENCE/i.test(result.verification_status || "");
   return <section className="page-section results-page">
     <div className="page-heading"><div><div className="eyebrow">VERIFICATION REPORT</div><h1>Answer review.</h1><p>Review the original response, corrected answer, and evidence behind each claim.</p></div><button className="button button-ghost" onClick={onAskAgain}>← Back to question</button></div>
     {usedDemo && <div className="demo-banner"><span>ⓘ</span><div><strong>Illustrative sample result — not generated by your AI model.</strong><p>This example only demonstrates how the interface presents verification results.</p></div></div>}
     <div className="result-summary panel"><div><div className="summary-label">OVERALL VERIFICATION</div><h2>{String(result.verification_status || "STATUS UNAVAILABLE").replaceAll("_", " ")}</h2><p>{result.message || `${result.claims.length} claims reviewed in this response`}</p></div><div className="summary-stats"><div><strong className="stat-good">{supported.toString().padStart(2, "0")}</strong><span>Supported</span></div><div><strong className="stat-bad">{contradicted.toString().padStart(2, "0")}</strong><span>Contradicted</span></div><div><strong className="stat-warn">{uncertain.toString().padStart(2, "0")}</strong><span>Uncertain</span></div></div></div>
     <div className="answer-grid">
       <article className="answer-card panel"><div className="card-heading"><span className="answer-icon original">↗</span><div><h2>Original answer</h2><p>Before evidence-based correction</p></div></div><div className="answer-body">{result.original_answer || <em>The backend did not return an original answer.</em>}</div></article>
-      <article className="answer-card panel corrected-card"><div className="card-heading"><span className="answer-icon corrected-icon">✓</span><div><h2>Corrected answer</h2><p>Grounded in the available evidence</p></div><StatusPill status="SUPPORTED" /></div><div className="answer-body">{result.corrected_answer || <em>The backend did not return a corrected answer.</em>}</div></article>
+      <article className="answer-card panel corrected-card"><div className="card-heading"><span className="answer-icon corrected-icon">✓</span><div><h2>Corrected answer</h2><p>Grounded in the available evidence</p></div><StatusPill status={result.corrected_status || "UNCHECKED"} /></div><div className="answer-body">{result.corrected_answer || <em>The backend did not return a corrected answer.</em>}</div>{result.corrected_evidence && <div className="corrected-evidence"><strong>Answer taken from this evidence:</strong> {result.corrected_evidence}</div>}</article>
     </div>
+    {insufficient && <div className="insufficient-note" role="note"><span aria-hidden="true">ⓘ</span><div><strong>The supplied evidence does not contain enough information to answer this question.</strong><p>Instead of guessing, the system withheld the unsupported answer. Any claims that could not be verified appear below — add evidence that addresses the question, or rephrase it, to get a verified answer.</p></div></div>}
     <div className="claims-heading"><div><div className="eyebrow">CLAIM-BY-CLAIM BREAKDOWN</div><h2>Evidence and verification</h2><p>Each extracted claim is labelled with the available evidence and model signals.</p></div><span className="claim-count">{result.claims.length} claims</span></div>
     <div className="claim-list">{result.claims.length ? result.claims.map((claim, index) => <article className="claim-card panel" key={`${claim.claim}-${index}`}>
       <div className="claim-card-top"><div className="claim-number">{String(index + 1).padStart(2, "0")}</div><div className="claim-main"><div className="claim-label">EXTRACTED CLAIM</div><p className="claim-text">{claim.claim}</p></div><StatusPill status={claim.status} /></div>
@@ -248,9 +273,11 @@ function ResultsPage({ result, usedDemo, onAskAgain }) {
         <div><span className="metadata-label">OVERALL CONFIDENCE</span><strong>{claim.confidence === null || claim.confidence === undefined ? (claim.support_basis === "answer_span_in_evidence" ? "Grounded by evidence checks" : "Not available") : `${Math.round(Number(claim.confidence))}%`}</strong>{claim.confidence !== null && claim.confidence !== undefined && <div className="confidence-track"><span style={{ width: `${Math.max(0, Math.min(100, Number(claim.confidence)))}%` }} /></div>}{claim.support_basis && <small>Support basis: {claim.support_basis === "answer_span_in_evidence" ? "answer appears in question-relevant evidence" : "NLI entailment"}</small>}</div>
         <div><span className="metadata-label">NUMBER / ENTITY CHECK</span><strong>{claim.consistency?.status || "Not available"}</strong><small>{claim.consistency?.details || claim.consistency?.message || "No consistency details returned."}</small></div>
       </div>
-    </article>) : <div className="empty-state panel">No individual claims were returned. Confirm that the backend includes a `claims` array.</div>}</div>
+    </article>) : <div className="empty-state panel">{insufficient
+      ? "No claims were extracted, because the answer was withheld: the evidence did not contain enough information to answer the question, so there was nothing to verify."
+      : "No individual claims were returned. Confirm that the backend includes a `claims` array."}</div>}</div>
     {result.removed_claims?.length > 0 && <section className="removed-section"><div className="claims-heading"><div><div className="eyebrow">CORRECTION LOG</div><h2>Unsupported or removed claims</h2><p>Details omitted or changed during correction.</p></div></div><div className="removed-list panel">{result.removed_claims.map((claim, i) => <div key={i} className="removed-item"><span>−</span><p>{typeof claim === "string" ? claim : claim.claim || claim.text || JSON.stringify(claim)}</p></div>)}</div></section>}
-    {result.sources?.length > 0 && <section className="sources-section"><div className="claims-heading"><div><div className="eyebrow">RETRIEVED REFERENCES</div><h2>Sources used</h2><p>Links returned by the configured backend.</p></div><span className="claim-count">{result.sources.length} sources</span></div><div className="source-list">{result.sources.map((source, i) => <article className="source-card panel" key={`${source.url}-${i}`}><span className="source-number">{String(i + 1).padStart(2, "0")}</span><div><strong>{source.title || source.name || "Untitled source"}</strong><a href={source.url} target="_blank" rel="noreferrer">{source.url || "URL unavailable"} ↗</a>{source.snippet && <p>{source.snippet}</p>}</div><span className="external-icon">↗</span></article>)}</div></section>}
+    {result.sources?.length > 0 && <section className="sources-section"><div className="claims-heading"><div><div className="eyebrow">RETRIEVED REFERENCES</div><h2>Sources used</h2><p>Evidence sources returned by the configured backend.</p></div><span className="claim-count">{result.sources.length} sources</span></div><div className="source-list">{result.sources.map((source, i) => <article className="source-card panel" key={`${source.url || source.title || "source"}-${i}`}><span className="source-number">{String(i + 1).padStart(2, "0")}</span><div><strong>{source.title || source.name || "Untitled source"}</strong>{source.url ? <a href={source.url} target="_blank" rel="noreferrer">{source.url} ↗</a> : <span className="source-kind">Uploaded document</span>}{(source.snippet || source.passage) && <p>{source.snippet || source.passage}</p>}</div><span className="external-icon">↗</span></article>)}</div></section>}
     <div className="result-actions"><span>Always check the cited evidence before relying on an answer.</span><button className="button button-primary" onClick={onAskAgain}>Ask another question <span>→</span></button></div>
   </section>;
 }

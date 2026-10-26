@@ -34,11 +34,10 @@ CELL_MARKERS = [
     "def md_safe",
     "def read_uploaded_txt",
     "def run_document_rag",
-    "def is_public_http_url",
+    "def question_answer_type",            # final-scope conformance + extraction
 ]
 API_MARKER = "app = FastAPI("
 API_STOP = "# Start the API in the background"
-WEB_STOP = "web_demo = gr.Interface("
 
 
 def _clean(src):
@@ -79,8 +78,6 @@ def load_notebook(path=None, nli=None, generator=None, plain_generator=None, wit
             continue
         if not any(m in src for m in CELL_MARKERS):
             continue
-        if WEB_STOP in src:
-            src = src.split(WEB_STOP)[0]
         exec(compile(_clean(src), f"cell:{cell.get('id')}", "exec"), ns)
     # Generation is a model call: scripted by each test.
     ns["generate_answer"] = generator or (lambda q, c, max_length=128: "")

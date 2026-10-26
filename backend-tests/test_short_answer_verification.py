@@ -176,13 +176,18 @@ class TestExistingBehaviourPreserved:
 
 # --------------------------------------------- the notebook's own built-in test cells
 def test_notebook_builtin_model_free_cells_pass(make_ns):
-    """Re-run the model-free assertion cells that live inside the notebook."""
+    """Re-run the model-free assertion cells that live inside the notebook.
+
+    Four cells: correction safety, upload/chunking, status-decision rules and the
+    short-answer helpers. (A fifth cell tested the automatic web-retrieval mode,
+    which was removed from the final demo scope.)
+    """
     import json
     from notebook_harness import default_notebook_path, _clean
     from stubs import FakeNLI
     ns = make_ns(FakeNLI)
     nb = json.load(open(default_notebook_path(), encoding="utf-8"))
-    markers = ["def _fake(claim", "def _write_tmp", "fake_results = [{",
+    markers = ["def _fake(claim", "def _write_tmp",
                "def _nc(consistent", "Short-answer helper tests passed"]
     ran, shared = 0, dict(ns)          # one shared namespace: later cells reuse earlier helpers
     for cell in nb["cells"]:
@@ -190,4 +195,4 @@ def test_notebook_builtin_model_free_cells_pass(make_ns):
         if cell["cell_type"] == "code" and any(m in src for m in markers):
             exec(compile(_clean(src), "builtin", "exec"), shared)
             ran += 1
-    assert ran == 5
+    assert ran == 4
