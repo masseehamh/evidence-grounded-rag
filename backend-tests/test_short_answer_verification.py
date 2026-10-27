@@ -107,6 +107,31 @@ class TestUnsupported:
         assert not ns["answer_is_grounded"](EINSTEIN_Q, "1905", evidence)
 
 
+class TestNameEvidenceVerification:
+    QUESTION = "what's my name?"
+    EVIDENCE = "my name is pinc and im really glad to meet u"
+
+    def test_name_explicitly_stated_is_supported(self, ns):
+        report = ns["run_verification_pipeline"](
+            self.QUESTION, self.EVIDENCE, "Pinc", verbose=False
+        )
+        claim = report["claims"][0]
+        assert claim["hypothesis"] == "The person's name is Pinc."
+        assert claim["status"] == "SUPPORTED", claim
+
+    def test_name_absent_from_evidence_is_not_enough_evidence(self, ns):
+        report = ns["run_verification_pipeline"](
+            self.QUESTION, "It is nice to meet you.", "Pinc", verbose=False
+        )
+        assert report["claims"][0]["status"] == "NOT ENOUGH EVIDENCE"
+
+    def test_different_evidenced_name_is_contradicted(self, ns):
+        report = ns["run_verification_pipeline"](
+            self.QUESTION, "My name is Alice.", "Pinc", verbose=False
+        )
+        assert report["claims"][0]["status"] == "CONTRADICTED"
+
+
 # ------------------------------------------------------------- contradicted answers
 class TestContradicted:
     @pytest.mark.parametrize("wrong", ["1906", "1921", "1895"])
@@ -187,9 +212,25 @@ def test_notebook_builtin_model_free_cells_pass(make_ns):
     from stubs import FakeNLI
     ns = make_ns(FakeNLI)
     nb = json.load(open(default_notebook_path(), encoding="utf-8"))
-    markers = ["def _fake(claim", "def _write_tmp",
-               "def _nc(consistent", "Short-answer helper tests passed"]
-    ran, shared = 0, dict(ns)          # one shared namespace: later cells reuse earlier helpers
+    markers = [
+    "def _fake(claim",
+    "def _write_tmp",
+    "def _nc(consistent",
+    "Short-answer helper tests passed",
+]
+    shared = dict(ns)
+    shared["MANDELA_EVIDENCE"] = (
+    "Mandela was appointed President of the ANC's Transvaal branch, rising to prominence "
+    "for his involvement in the 1952 Defiance Campaign and the 1955 Congress of the People. "
+    "He was repeatedly arrested for seditious activities and was unsuccessfully prosecuted "
+    "in the 1956 Treason Trial. Influenced by Marxism, he secretly joined the South African "
+    "Communist Party (SACP). Although initially committed to non-violent protest, in "
+    "association with the SACP he co-founded the militant Umkhonto we Sizwe in 1961 and led "
+    "a sabotage campaign against the government. In 1962, he was arrested for conspiring to "
+    "overthrow the state and sentenced to life imprisonment in the Rivonia Trial."
+)
+    ran = 0
+            # one shared namespace: later cells reuse earlier helpers
     for cell in nb["cells"]:
         src = "".join(cell["source"])
         if cell["cell_type"] == "code" and any(m in src for m in markers):
