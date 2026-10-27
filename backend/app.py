@@ -372,25 +372,122 @@ def summarize_status(claims: list[dict[str, Any]]) -> str:
 
 INSUFFICIENT_ANSWER = "The provided evidence does not contain enough information to answer this question."
 
+def correct_answer(question: str, original_answer: str, evidence: str,
+                   removed_claims: list[dict[str, Any]]) -> str:
+    """Rewrite an answer using evidence when verification finds problems."""
+    issues = [
+        {
+            "claim": item["claim"],
+            "status": item["status"],
+            "reason": item.get("reason", ""),
+        }
+        for item in removed_claims
+    ]
+
+    return cloudflare_chat([
+        {
+            "role": "system",
+            "content": (
+                "You are an evidence-grounded answer correction assistant. "
+                "Use only the supplied evidence. Correct contradicted claims, "
+                "remove unsupported claims, and preserve claims that the evidence "
+                "supports. Never invent replacement facts. If the evidence cannot "
+                "answer the question, say that the evidence is insufficient. "
+                "Return only the corrected answer, without commentary."
+            ),
+        },
+        {
+            "role": "user",
+            "content": json.dumps({
+                "question": question,
+                "original_answer": original_answer,
+                "claims_requiring_correction": issues,
+                "evidence": evidence[:MAX_CONTEXT_CHARS],
+            }, ensure_ascii=False),
+        },
+    ], max_tokens=350).strip()
+
+
 
 def run_rag(question: str, evidence: str) -> dict[str, Any]:
     original_answer = generate_answer(question, evidence)
     claims = verify_claims(question, original_answer, evidence)
-    supported = [item for item in claims if item["status"] == "SUPPORTED"]
-    removed = [item for item in claims if item["status"] != "SUPPORTED"]
 
-    # Correction is extractive: do not ask a second generator to invent replacement facts.
-    # The corrected response contains only claims already marked supported.
-    if supported:
-        corrected_answer = " ".join(item["claim"] for item in supported)
-        corrected_evidence = " ".join(
-            dict.fromkeys(item["evidence"] for item in supported if item.get("evidence"))
-        )
-        corrected_status = "SUPPORTED"
-    else:
+    supported = [
+        item for item in claims
+        if item["status"] == "SUPPORTED"
+    ]
+    removed = [
+        item for item in claims
+        if item["status"] != "SUPPORTED"
+    ]
+
+    correction_attempted = bool(removed)
+
+    if not claims:
         corrected_answer = INSUFFICIENT_ANSWER
         corrected_evidence = ""
         corrected_status = "NOT_ENOUGH_EVIDENCE"
+
+    elif not removed:
+        # A correct, evidence-supported answer should remain unchanged.
+        corrected_answer = original_answer
+        corrected_evidence = " ".join(
+            dict.fromkeys(
+                item["evidence"]
+                for item in supported
+                if item.get("evidence")
+            )
+        )
+        corrected_status = "SUPPORTED"
+
+    else:
+        # Ask the model to correct the answer, then verify it again.
+        revised_answer = correct_answer(
+            question, original_answer, evidence, removed
+        )
+        revised_claims = verify_claims(
+            question, revised_answer, evidence
+        )
+
+        revised_supported = [
+            item for item in revised_claims
+            if item["status"] == "SUPPORTED"
+        ]
+
+        # Never trust the correction without checking its claims.
+        if revised_supported:
+            corrected_answer = " ".join(
+                item["claim"] for item in revised_supported
+            )
+            corrected_evidence = " ".join(
+                dict.fromkeys(
+                    item["evidence"]
+                    for item in revised_supported
+                    if item.get("evidence")
+                )
+            )
+            corrected_status = "SUPPORTED"
+
+        elif supported:
+            # Safe fallback: retain only claims supported in the
+            # original answer's verification.
+            corrected_answer = " ".join(
+                item["claim"] for item in supported
+            )
+            corrected_evidence = " ".join(
+                dict.fromkeys(
+                    item["evidence"]
+                    for item in supported
+                    if item.get("evidence")
+                )
+            )
+            corrected_status = "SUPPORTED"
+
+        else:
+            corrected_answer = INSUFFICIENT_ANSWER
+            corrected_evidence = ""
+            corrected_status = "NOT_ENOUGH_EVIDENCE"
 
     return {
         "verification_status": summarize_status(claims),
@@ -408,9 +505,9 @@ def run_rag(question: str, evidence: str) -> dict[str, Any]:
             }
             for item in removed
         ],
+        "correction_attempted": correction_attempted,
         "sources": [],
     }
-
 
 def make_insufficient_response(sources: Optional[list[dict[str, str]]] = None) -> dict[str, Any]:
     return {
