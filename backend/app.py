@@ -66,12 +66,15 @@ def cloudflare_chat(messages: list[dict[str, str]], max_tokens: int = MAX_COMPLE
         f"{account_id}/ai/v1/chat/completions"
     )
     body = json.dumps({
-        "model": model,
-        "messages": messages,
-        "temperature": 0.1,
-        "max_completion_tokens": max_tokens,
-        "stream": False,
-    }).encode("utf-8")
+    "model": model,
+    "messages": messages,
+    "temperature": 0.1,
+    "max_completion_tokens": max_tokens,
+    "chat_template_kwargs": {
+        "enable_thinking": False
+    },
+    "stream": False,
+}).encode("utf-8")
     request = Request(
         url,
         data=body,
