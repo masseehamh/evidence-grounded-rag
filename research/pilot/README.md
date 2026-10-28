@@ -33,7 +33,7 @@ The output JSONL is local and intentionally not committed, because it contains m
 - `clean/retrieval_only` and `misleading/retrieval_only`: the model answers using each evidence condition.
 - `clean/generative_correction` and `misleading/generative_correction`: the same no-retrieval initial answer is passed to a separate correction call using the condition's evidence.
 
-The evaluator uses exact-match aliases and token F1, which are only smoke-test metrics for short factoid answers. Manually inspect outputs. For publication-quality work, replace these cases with a properly sourced and audited dataset, freeze prompts/model settings, include sufficient samples, use paired statistical analysis, and manually validate any semantic evaluator.
+The evaluator uses exact-match aliases and token F1, which are only smoke-test metrics for short factoid answers. It also reports whether a gold/foil alias phrase appears in the final answer; these columns are **diagnostics only**, not semantic correctness judgments. The per-example CSV includes blank `manual_factuality_label` and `manual_review_notes` fields for human adjudication. For publication-quality work, replace these cases with a properly sourced and audited dataset, freeze prompts/model settings, include sufficient samples, use paired statistical analysis, and manually validate any semantic evaluator.
 
 ## Data format
 
