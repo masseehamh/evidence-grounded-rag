@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/evidence-grounded-rag/controlled-multisource-v1.schema.json",
+  "title": "Controlled multi-source RAG correction item",
+  "type": "object",
+  "required": ["schema_version", "item_id", "question", "truth_key", "draft_variants", "evidence_variants"],
+  "properties": {
+    "schema_version": { "const": "controlled-multisource-v1" },
+    "item_id": { "type": "string", "pattern": "^msctrl_[0-9]{3,}$" },
+    "question": { "type": "string", "minLength": 1 },
+    "truth_key": {
+      "type": "object",
+      "required": ["gold_answer", "false_claim"],
+      "properties": {
+        "gold_answer": { "type": "string", "minLength": 1 },
+        "false_claim": { "type": "string", "minLength": 1 },
+        "review_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "draft_variants": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["draft_state", "answer"],
+        "properties": {
+          "draft_state": { "enum": ["correct", "incorrect"] },
+          "answer": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence_variants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["scenario_id", "answerability", "prompt_passages", "annotation_key"],
+        "properties": {
+          "scenario_id": { "type": "string", "minLength": 1 },
+          "answerability": { "enum": ["answer_present", "insufficient", "conflicting"] },
+          "prompt_passages": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["source_id", "source_family", "independence_group", "text", "provenance_label"],
+              "properties": {
+                "source_id": { "type": "string", "minLength": 1 },
+                "source_family": { "type": "string", "minLength": 1 },
+                "independence_group": { "type": "string", "minLength": 1 },
+                "text": { "type": "string", "minLength": 1 },
+                "provenance_label": { "enum": ["higher", "lower", "unknown"] }
+              },
+              "additionalProperties": false
+            }
+          },
+          "annotation_key": {
+            "type": "object",
+            "required": ["truth_relation_by_source"],
+            "properties": {
+              "truth_relation_by_source": {
+                "type": "object",
+                "additionalProperties": { "enum": ["supports_truth", "contradicts_truth", "irrelevant"] }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

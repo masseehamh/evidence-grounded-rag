@@ -1,0 +1,294 @@
+{
+  "schema_version": "controlled-multisource-v1",
+  "item_id": "msctrl_001",
+  "question": "What signal hue is assigned to Vexa-01?",
+  "truth_key": {
+    "gold_answer": "amber",
+    "false_claim": "violet",
+    "review_note": "Fictional deterministic assignment; development data only."
+  },
+  "draft_variants": [
+    {
+      "draft_state": "correct",
+      "answer": "amber"
+    },
+    {
+      "draft_state": "incorrect",
+      "answer": "violet"
+    }
+  ],
+  "evidence_variants": [
+    {
+      "scenario_id": "single_true_higher",
+      "answerability": "answer_present",
+      "prompt_passages": [
+        {
+          "source_id": "S1",
+          "source_family": "Archive-A",
+          "independence_group": "independent-A",
+          "text": "The registry entry for Vexa-01 lists its signal hue as amber.",
+          "provenance_label": "higher"
+        }
+      ],
+      "annotation_key": {
+        "truth_relation_by_source": {
+          "S1": "supports_truth"
+        }
+      }
+    },
+    {
+      "scenario_id": "single_true_lower",
+      "answerability": "answer_present",
+      "prompt_passages": [
+        {
+          "source_id": "S1",
+          "source_family": "Archive-A",
+          "independence_group": "independent-A",
+          "text": "The registry entry for Vexa-01 lists its signal hue as amber.",
+          "provenance_label": "lower"
+        }
+      ],
+      "annotation_key": {
+        "truth_relation_by_source": {
+          "S1": "supports_truth"
+        }
+      }
+    },
+    {
+      "scenario_id": "single_false_higher",
+      "answerability": "answer_present",
+      "prompt_passages": [
+        {
+          "source_id": "S1",
+          "source_family": "Archive-A",
+          "independence_group": "independent-A",
+          "text": "The registry entry for Vexa-01 lists its signal hue as violet.",
+          "provenance_label": "higher"
+        }
+      ],
+      "annotation_key": {
+        "truth_relation_by_source": {
+          "S1": "contradicts_truth"
+        }
+      }
+    },
+    {
+      "scenario_id": "single_false_lower",
+      "answerability": "answer_present",
+      "prompt_passages": [
+        {
+          "source_id": "S1",
+          "source_family": "Archive-A",
+          "independence_group": "independent-A",
+          "text": "The registry entry for Vexa-01 lists its signal hue as violet.",
+          "provenance_label": "lower"
+        }
+      ],
+      "annotation_key": {
+        "truth_relation_by_source": {
+          "S1": "contradicts_truth"
+        }
+      }
+    },
+    {
+      "scenario_id": "independent_agreement_true",
+      "answerability": "answer_present",
+      "prompt_passages": [
+        {
+          "source_id": "S1",
+          "source_family": "Archive-A",
+          "independence_group": "independent-A",
+          "text": "The registry entry for Vexa-01 lists its signal hue as amber.",
+          "provenance_label": "higher"
+        },
+        {
+          "source_id": "S2",
+          "source_family": "Archive-B",
+          "independence_group": "independent-B",
+          "text": "The registry entry for Vexa-01 lists its signal hue as amber.",
+          "provenance_label": "lower"
+        }
+      ],
+      "annotation_key": {
+        "truth_relation_by_source": {
+          "S1": "supports_truth",
+          "S2": "supports_truth"
+        }
+      }
+    },
+    {
+      "scenario_id": "independent_agreement_false",
+      "answerability": "answer_present",
+      "prompt_passages": [
+        {
+          "source_id": "S1",
+          "source_family": "Archive-A",
+          "independence_group": "independent-A",
+          "text": "The registry entry for Vexa-01 lists its signal hue as violet.",
+          "provenance_label": "higher"
+        },
+        {
+          "source_id": "S2",
+          "source_family": "Archive-B",
+          "independence_group": "independent-B",
+          "text": "The registry entry for Vexa-01 lists its signal hue as violet.",
+          "provenance_label": "lower"
+        }
+      ],
+      "annotation_key": {
+        "truth_relation_by_source": {
+          "S1": "contradicts_truth",
+          "S2": "contradicts_truth"
+        }
+      }
+    },
+    {
+      "scenario_id": "independent_conflict_true_higher",
+      "answerability": "conflicting",
+      "prompt_passages": [
+        {
+          "source_id": "S1",
+          "source_family": "Archive-A",
+          "independence_group": "independent-A",
+          "text": "The registry entry for Vexa-01 lists its signal hue as amber.",
+          "provenance_label": "higher"
+        },
+        {
+          "source_id": "S2",
+          "source_family": "Archive-B",
+          "independence_group": "independent-B",
+          "text": "The registry entry for Vexa-01 lists its signal hue as violet.",
+          "provenance_label": "lower"
+        }
+      ],
+      "annotation_key": {
+        "truth_relation_by_source": {
+          "S1": "supports_truth",
+          "S2": "contradicts_truth"
+        }
+      }
+    },
+    {
+      "scenario_id": "independent_conflict_false_higher",
+      "answerability": "conflicting",
+      "prompt_passages": [
+        {
+          "source_id": "S1",
+          "source_family": "Archive-A",
+          "independence_group": "independent-A",
+          "text": "The registry entry for Vexa-01 lists its signal hue as violet.",
+          "provenance_label": "higher"
+        },
+        {
+          "source_id": "S2",
+          "source_family": "Archive-B",
+          "independence_group": "independent-B",
+          "text": "The registry entry for Vexa-01 lists its signal hue as amber.",
+          "provenance_label": "lower"
+        }
+      ],
+      "annotation_key": {
+        "truth_relation_by_source": {
+          "S1": "contradicts_truth",
+          "S2": "supports_truth"
+        }
+      }
+    },
+    {
+      "scenario_id": "independent_conflict_equal",
+      "answerability": "conflicting",
+      "prompt_passages": [
+        {
+          "source_id": "S1",
+          "source_family": "Archive-A",
+          "independence_group": "independent-A",
+          "text": "The registry entry for Vexa-01 lists its signal hue as amber.",
+          "provenance_label": "higher"
+        },
+        {
+          "source_id": "S2",
+          "source_family": "Archive-B",
+          "independence_group": "independent-B",
+          "text": "The registry entry for Vexa-01 lists its signal hue as violet.",
+          "provenance_label": "higher"
+        }
+      ],
+      "annotation_key": {
+        "truth_relation_by_source": {
+          "S1": "supports_truth",
+          "S2": "contradicts_truth"
+        }
+      }
+    },
+    {
+      "scenario_id": "dependent_agreement_false",
+      "answerability": "answer_present",
+      "prompt_passages": [
+        {
+          "source_id": "S1",
+          "source_family": "Archive-A",
+          "independence_group": "independent-A",
+          "text": "The registry entry for Vexa-01 lists its signal hue as violet.",
+          "provenance_label": "higher"
+        },
+        {
+          "source_id": "S2",
+          "source_family": "Archive-A",
+          "independence_group": "independent-A",
+          "text": "The registry entry for Vexa-01 lists its signal hue as violet.",
+          "provenance_label": "lower"
+        }
+      ],
+      "annotation_key": {
+        "truth_relation_by_source": {
+          "S1": "contradicts_truth",
+          "S2": "contradicts_truth"
+        }
+      }
+    },
+    {
+      "scenario_id": "irrelevant_only",
+      "answerability": "insufficient",
+      "prompt_passages": [
+        {
+          "source_id": "S1",
+          "source_family": "Archive-C",
+          "independence_group": "independent-C",
+          "text": "The registry entry for Vexa-01 lists a maintenance interval of 11 months.",
+          "provenance_label": "unknown"
+        }
+      ],
+      "annotation_key": {
+        "truth_relation_by_source": {
+          "S1": "irrelevant"
+        }
+      }
+    },
+    {
+      "scenario_id": "true_plus_irrelevant",
+      "answerability": "answer_present",
+      "prompt_passages": [
+        {
+          "source_id": "S1",
+          "source_family": "Archive-A",
+          "independence_group": "independent-A",
+          "text": "The registry entry for Vexa-01 lists its signal hue as amber.",
+          "provenance_label": "higher"
+        },
+        {
+          "source_id": "S2",
+          "source_family": "Archive-C",
+          "independence_group": "independent-C",
+          "text": "The registry entry for Vexa-01 lists a maintenance interval of 11 months.",
+          "provenance_label": "unknown"
+        }
+      ],
+      "annotation_key": {
+        "truth_relation_by_source": {
+          "S1": "supports_truth",
+          "S2": "irrelevant"
+        }
+      }
+    }
+  ]
+}

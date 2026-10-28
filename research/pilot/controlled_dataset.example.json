@@ -1,0 +1,65 @@
+{
+  "schema_version": "controlled-v0",
+  "item_id": "ctrl_001",
+  "question": "Which color code is assigned to the fictional Vexa-3 unit?",
+  "truth_key": {
+    "gold_answer": "amber",
+    "false_claim": "teal",
+    "review_note": "Illustrative fictional fact only; not a research item."
+  },
+  "draft_variants": [
+    { "draft_state": "correct", "answer": "amber" },
+    { "draft_state": "incorrect", "answer": "teal" }
+  ],
+  "evidence_variants": [
+    {
+      "scenario_id": "true_higher",
+      "answerability": "answer_present",
+      "prompt_passages": [
+        { "source_id": "S1", "text": "The Vexa-3 unit is assigned the amber color code.", "provenance_label": "higher" }
+      ],
+      "annotation_key": { "truth_relation_by_source": { "S1": "supports_truth" } }
+    },
+    {
+      "scenario_id": "true_lower",
+      "answerability": "answer_present",
+      "prompt_passages": [
+        { "source_id": "S1", "text": "The Vexa-3 unit is assigned the amber color code.", "provenance_label": "lower" }
+      ],
+      "annotation_key": { "truth_relation_by_source": { "S1": "supports_truth" } }
+    },
+    {
+      "scenario_id": "false_higher",
+      "answerability": "answer_present",
+      "prompt_passages": [
+        { "source_id": "S1", "text": "The Vexa-3 unit is assigned the teal color code.", "provenance_label": "higher" }
+      ],
+      "annotation_key": { "truth_relation_by_source": { "S1": "contradicts_truth" } }
+    },
+    {
+      "scenario_id": "false_lower",
+      "answerability": "answer_present",
+      "prompt_passages": [
+        { "source_id": "S1", "text": "The Vexa-3 unit is assigned the teal color code.", "provenance_label": "lower" }
+      ],
+      "annotation_key": { "truth_relation_by_source": { "S1": "contradicts_truth" } }
+    },
+    {
+      "scenario_id": "equal_conflict",
+      "answerability": "conflicting",
+      "prompt_passages": [
+        { "source_id": "S1", "text": "The Vexa-3 unit is assigned the amber color code.", "provenance_label": "higher" },
+        { "source_id": "S2", "text": "The Vexa-3 unit is assigned the teal color code.", "provenance_label": "higher" }
+      ],
+      "annotation_key": { "truth_relation_by_source": { "S1": "supports_truth", "S2": "contradicts_truth" } }
+    },
+    {
+      "scenario_id": "irrelevant_only",
+      "answerability": "insufficient",
+      "prompt_passages": [
+        { "source_id": "S1", "text": "The Vexa-3 unit was introduced in the third quarter.", "provenance_label": "unknown" }
+      ],
+      "annotation_key": { "truth_relation_by_source": { "S1": "irrelevant" } }
+    }
+  ]
+}
