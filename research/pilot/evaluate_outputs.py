@@ -97,6 +97,17 @@ def evaluate_row(row: dict[str, Any]) -> dict[str, Any]:
 
     initial_correct = matches(row["initial_answer"], gold)
     final_correct = matches(row["final_answer"], gold)
+    gold_mentioned = mentions_alias(row["final_answer"], gold)
+    foil_mentioned = mentions_alias(row["final_answer"], foil) if foil else False
+    review_flags = []
+    if gold_mentioned and not final_correct:
+        review_flags.append("gold_alias_in_nonexact_answer")
+    if foil_mentioned:
+        review_flags.append("foil_alias_mentioned")
+    if gold_mentioned and foil_mentioned:
+        review_flags.append("gold_and_foil_both_mentioned")
+    if initial_correct and not final_correct:
+        review_flags.append("exact_match_loss_after_initial_exact_match")
     return {
         "case_id": str(row["case_id"]),
         "condition": str(row["condition"]),
@@ -108,15 +119,17 @@ def evaluate_row(row: dict[str, Any]) -> dict[str, Any]:
         "final_exact_match": int(final_correct),
         "accuracy_change": int(final_correct) - int(initial_correct),
         "correction_success": int((not initial_correct) and final_correct),
-        "harmful_change": int(initial_correct and (not final_correct)),
+        "exact_match_loss_after_initial_exact_match": int(initial_correct and (not final_correct)),
         "preserved_correct": int(initial_correct and final_correct),
         "foil_adoption": int(matches(row["final_answer"], foil)) if foil else 0,
         # Phrase-presence diagnostics help flag elaborated answers for review;
         # they must not be interpreted as correctness labels.
-        "final_gold_alias_mentioned": int(mentions_alias(row["final_answer"], gold)),
-        "final_foil_alias_mentioned": int(mentions_alias(row["final_answer"], foil)) if foil else 0,
-        "manual_factuality_label": "",
-        "manual_review_notes": "",
+        "final_gold_alias_mentioned": int(gold_mentioned),
+        "final_foil_alias_mentioned": int(foil_mentioned),
+        "manual_review_recommended": int(bool(review_flags)),
+        "manual_review_flags": ";".join(review_flags),
+        "manual_factuality_label": str(row.get("manual_factuality_label", "") or ""),
+        "manual_review_notes": str(row.get("manual_review_notes", "") or ""),
         "initial_token_f1": round(token_f1(row["initial_answer"], gold), 6),
         "final_token_f1": round(token_f1(row["final_answer"], gold), 6),
     }
@@ -137,6 +150,13 @@ def summarize(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         initial_correct = sum(r["initial_exact_match"] for r in group)
         final_correct = sum(r["final_exact_match"] for r in group)
         initially_wrong = n - initial_correct
+        labels = [str(r.get("manual_factuality_label", "") or "").strip().lower()
+                  for r in group]
+        reviewed = sum(bool(label) for label in labels)
+        correct_labels = {"correct", "correct_with_caveat"}
+        incorrect_labels = {"incorrect", "incorrect_foil"}
+        mixed_labels = {"mixed", "mixed_correct_answer_and_error"}
+        abstention_labels = {"abstention", "unsupported_or_abstention"}
         summaries.append({
             "condition": condition,
             "strategy": strategy,
@@ -148,9 +168,9 @@ def summarize(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "correction_success_rate_among_initially_wrong": rate(
                 sum(r["correction_success"] for r in group), initially_wrong
             ),
-            "harmful_change_count": sum(r["harmful_change"] for r in group),
-            "harmful_change_rate_among_initially_correct": rate(
-                sum(r["harmful_change"] for r in group), initial_correct
+            "exact_match_loss_count": sum(r["exact_match_loss_after_initial_exact_match"] for r in group),
+            "exact_match_loss_rate_among_initially_exact_matched": rate(
+                sum(r["exact_match_loss_after_initial_exact_match"] for r in group), initial_correct
             ),
             "preserved_correct_count": sum(r["preserved_correct"] for r in group),
             "preservation_rate_among_initially_correct": rate(
@@ -164,6 +184,27 @@ def summarize(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "final_foil_alias_mention_rate_diagnostic": rate(
                 sum(r["final_foil_alias_mentioned"] for r in group), n
             ),
+            "manual_review_recommended_count": sum(
+                int(r.get("manual_review_recommended", 0)) for r in group
+            ),
+            "gold_alias_nonexact_count_diagnostic": sum(
+                int(r["final_gold_alias_mentioned"] and not r["final_exact_match"])
+                for r in group
+            ),
+            "gold_and_foil_both_mentioned_count_diagnostic": sum(
+                int(r["final_gold_alias_mentioned"] and r["final_foil_alias_mentioned"])
+                for r in group
+            ),
+            "manual_reviewed_count": reviewed,
+            "manual_correct_count": sum(label in correct_labels for label in labels),
+            "manual_mixed_count": sum(label in mixed_labels for label in labels),
+            "manual_incorrect_count": sum(label in incorrect_labels for label in labels),
+            "manual_abstention_count": sum(label in abstention_labels for label in labels),
+            "manual_other_label_count": sum(
+                bool(label) and label not in correct_labels | mixed_labels | incorrect_labels | abstention_labels
+                for label in labels
+            ),
+            "manual_unreviewed_count": n - reviewed,
             "mean_initial_token_f1": f"{sum(r['initial_token_f1'] for r in group) / n:.6f}",
             "mean_final_token_f1": f"{sum(r['final_token_f1'] for r in group) / n:.6f}",
         })
@@ -188,6 +229,45 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def read_manual_reviews(path: Path) -> dict[tuple[str, str, str], dict[str, str]]:
+    """Read manual labels/notes from a previously generated per-example CSV."""
+    reviews: dict[tuple[str, str, str], dict[str, str]] = {}
+    with path.open("r", encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        required = {"case_id", "condition", "strategy", "manual_factuality_label", "manual_review_notes"}
+        missing = required - set(reader.fieldnames or [])
+        if missing:
+            raise ValueError(f"Reviewed CSV is missing required columns: {sorted(missing)}")
+        for line_no, row in enumerate(reader, start=2):
+            key = (row["case_id"], row["condition"], row["strategy"])
+            if key in reviews:
+                raise ValueError(f"Duplicate reviewed row key on line {line_no}: {key}")
+            reviews[key] = {
+                "manual_factuality_label": row.get("manual_factuality_label", "") or "",
+                "manual_review_notes": row.get("manual_review_notes", "") or "",
+            }
+    return reviews
+
+
+def merge_manual_reviews(
+    rows: list[dict[str, Any]], reviews: dict[tuple[str, str, str], dict[str, str]]
+) -> list[dict[str, Any]]:
+    """Attach reviews by stable row identity and reject stale/mismatched CSVs."""
+    row_keys = {(r["case_id"], r["condition"], r["strategy"]) for r in rows}
+    review_keys = set(reviews)
+    if row_keys != review_keys:
+        missing = sorted(row_keys - review_keys)
+        extra = sorted(review_keys - row_keys)
+        raise ValueError(
+            "Reviewed CSV rows do not match this input; "
+            f"missing keys: {missing[:3]}, unexpected keys: {extra[:3]}"
+        )
+    for row in rows:
+        key = (row["case_id"], row["condition"], row["strategy"])
+        row.update(reviews[key])
+    return rows
+
+
 def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
@@ -200,9 +280,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True, type=Path, help="Model-output JSONL file")
     parser.add_argument("--outdir", required=True, type=Path, help="Output directory for CSV reports")
+    parser.add_argument(
+        "--reviewed-per-example", type=Path,
+        help="Previously reviewed per_example.csv; merges human labels/notes and refreshes summary.csv",
+    )
     args = parser.parse_args()
     try:
         rows = read_jsonl(args.input)
+        if args.reviewed_per_example:
+            rows = merge_manual_reviews(rows, read_manual_reviews(args.reviewed_per_example))
     except (OSError, ValueError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 2

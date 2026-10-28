@@ -27,13 +27,25 @@ The runner uses five model calls per case: one initial answer without evidence, 
 
 The output JSONL is local and intentionally not committed, because it contains model outputs. Do not use `--append` when re-running the same cases unless you want repeated records.
 
+## Manual review workflow
+
+1. Open `research/pilot/results/per_example.csv` and fill in `manual_factuality_label` and `manual_review_notes` for the rows you adjudicate. Suggested labels are `correct`, `correct_with_caveat`, `mixed_correct_answer_and_error`, `incorrect`, `incorrect_foil`, and `unsupported_or_abstention`.
+2. Re-run the evaluator with the reviewed CSV to carry labels into the summary:
+
+   ```bash
+   python research/pilot/evaluate_outputs.py --input research/pilot/outputs.jsonl --outdir research/pilot/results --reviewed-per-example research/pilot/results/per_example.csv
+   ```
+
+   The evaluator checks that the reviewed rows match the current outputs by case, condition, and strategy. It rejects stale or mismatched review files.
+3. Read `summary.csv` for the unchanged exact-match metrics and the manual-label counts. The manual counts reflect only rows with a non-empty label; they do not replace the exact-match results.
+
 ## Interpretation
 
 - `no_retrieval/no_correction`: the original answer is left unchanged.
 - `clean/retrieval_only` and `misleading/retrieval_only`: the model answers using each evidence condition.
 - `clean/generative_correction` and `misleading/generative_correction`: the same no-retrieval initial answer is passed to a separate correction call using the condition's evidence.
 
-The evaluator uses exact-match aliases and token F1, which are only smoke-test metrics for short factoid answers. It also reports whether a gold/foil alias phrase appears in the final answer; these columns are **diagnostics only**, not semantic correctness judgments. The per-example CSV includes blank `manual_factuality_label` and `manual_review_notes` fields for human adjudication. For publication-quality work, replace these cases with a properly sourced and audited dataset, freeze prompts/model settings, include sufficient samples, use paired statistical analysis, and manually validate any semantic evaluator.
+The evaluator uses exact-match aliases and token F1, which are only smoke-test metrics for short factoid answers. It also reports whether a gold/foil alias phrase appears in the final answer; these columns and `manual_review_flags` are **diagnostics only**, not semantic correctness judgments. Rows are flagged when the answer mentions a gold alias without exact matching, mentions a foil alias, mentions both gold and foil, or loses exact match after starting correct. The `exact_match_loss_*` columns describe changes in exact-match status only; they do not establish factual harm. The per-example CSV includes `manual_factuality_label` and `manual_review_notes` fields for human adjudication. Summary manual counts are reported separately and only include labels actually entered by a reviewer. For publication-quality work, replace these cases with a properly sourced and audited dataset, freeze prompts/model settings, include sufficient samples, use paired statistical analysis, and manually validate any semantic evaluator.
 
 ## Data format
 
