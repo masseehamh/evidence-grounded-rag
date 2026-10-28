@@ -29,9 +29,8 @@ function App() {
   const [usedDemo, setUsedDemo] = useState(false);
   const [demoToken, setDemoToken] = useState("");
   const [demoScenarioId, setDemoScenarioId] = useState("eiffel_tower");
-  const [showCorrectionDemo] = useState(
-    () => new URLSearchParams(window.location.search).get("controlled-demo") === "1"
-  );
+  // Keep the controlled demo available inside the normal app; no special URL is needed.
+  const showCorrectionDemo = true;
 
   useEffect(() => {
     if (!isApiConfigured) {
@@ -201,7 +200,11 @@ function App() {
         </header>
 
         <div className="content">
-          {page === "home" && <HomePage onStart={() => setPage("ask")} onExample={loadExample} />}
+          {page === "home" && <HomePage
+            onStart={() => setPage("ask")}
+            onDemo={() => { setPage("ask"); setError(""); setResult(null); }}
+            onExample={loadExample}
+          />}
           {page === "ask" && (
             <section className="page-section">
               <div className="page-heading">
@@ -228,7 +231,7 @@ function App() {
                 <div className="form-footer"><span className="privacy-note">⌑ Your input is sent only to the configured backend.</span><button className="button button-primary" type="submit" disabled={busy}>{busy ? <><span className="spinner" /> {uploading ? "Uploading document…" : "Processing…"}</> : <>Run verification <span>→</span></>}</button></div>
               </form>
               {showCorrectionDemo && <section className="panel controlled-demo-panel">
-                <div className="form-title"><span className="step-number">✳</span><div><h2>Controlled correction demo</h2><p>Runs a fixed Eiffel Tower example. The initial answer is deliberately incorrect; the backend then performs verification, correction, and re-verification.</p></div></div>
+                <div className="form-title"><span className="step-number">✳</span><div><h2>Try a correction scenario</h2><p>Choose one of five controlled examples. Each starts with a deliberately flawed answer, then runs verification, correction, and re-verification. Normal question answering remains separate and unchanged.</p></div></div>
                 <label htmlFor="demo-scenario">Choose a scenario</label>
                 <select id="demo-scenario" value={demoScenarioId} onChange={(e) => setDemoScenarioId(e.target.value)} disabled={busy}>
                   <option value="eiffel_tower">1. Contradicted fact — Eiffel Tower location</option>
@@ -258,7 +261,7 @@ function ModeCard({ active, icon, title, desc, onClick, disabled }) {
   </button>;
 }
 
-function HomePage({ onStart, onExample }) {
+function HomePage({ onStart, onDemo, onExample }) {
   const steps = [
     ["01", "Retrieve evidence", "Find relevant passages in the evidence you paste or in the document you upload."],
     ["02", "Generate an answer", "Use the retrieved evidence as context for the response."],
@@ -267,7 +270,7 @@ function HomePage({ onStart, onExample }) {
   ];
   return <section className="home-page">
     <div className="hero">
-      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> TRUSTWORTHY AI RESEARCH</div><h1>Answers should be<br /><span>backed by evidence.</span></h1><p className="hero-description">A transparent RAG workflow that checks claims, highlights uncertainty, and corrects responses when the evidence doesn't support them.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={onExample}>View a sample <span>↗</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div></div>
+      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> TRUSTWORTHY AI RESEARCH</div><h1>Answers should be<br /><span>backed by evidence.</span></h1><p className="hero-description">A transparent RAG workflow that checks claims, highlights uncertainty, and corrects responses when the evidence doesn't support them.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={onDemo}>Try a correction demo <span>↗</span></button><button className="button button-ghost" onClick={onExample}>View a sample <span>↗</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div></div>
       <div className="hero-visual" aria-label="Illustration of evidence checking">
         <div className="visual-top"><span className="visual-dot" /><span className="visual-dot" /><span className="visual-dot" /><span className="visual-title">VERIFICATION PIPELINE</span><span className="visual-live">● READY</span></div>
         <div className="pipeline">
