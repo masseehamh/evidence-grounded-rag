@@ -40,6 +40,9 @@ jobs:
       - name: Run backend test suite
         run: python -m pytest backend-tests -q
 
+      - name: Run research pilot evaluator tests
+        run: python -m unittest discover -s research/pilot -p 'test_*.py' -v
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:

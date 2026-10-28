@@ -1,0 +1,2 @@
+{"case_id":"toy_001","condition":"clean","strategy":"no_correction","initial_answer":"Paris","final_answer":"Paris","gold_answers":["Paris"],"foil_answers":["Lyon"],"note":"ILLUSTRATIVE TOY ROW ONLY; NOT RESEARCH DATA"}
+{"case_id":"toy_001","condition":"misleading","strategy":"generative_correction","initial_answer":"Paris","final_answer":"Lyon","gold_answers":["Paris"],"foil_answers":["Lyon"],"note":"ILLUSTRATIVE TOY ROW ONLY; NOT RESEARCH DATA"}
