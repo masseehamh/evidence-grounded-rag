@@ -19,6 +19,7 @@ dist/
 # Model and dataset caches
 .cache/
 huggingface/
+/research/pilot/serialized/
 
 
 # Frontend environment and generated files
@@ -30,3 +31,6 @@ evidence-grounded-rag-frontend/dist/
 
 # Tool-specific files
 .freebuff/
+
+research/pilot/validate_selective_outputs.py.bak
+research/pilot/test_validate_selective_outputs.py.bak
