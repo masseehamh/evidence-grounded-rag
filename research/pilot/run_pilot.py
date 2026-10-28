@@ -109,6 +109,18 @@ def load_cases(path: Path) -> list[dict[str, Any]]:
     return cases
 
 
+def select_cases(cases: list[dict[str, Any]], start: int, limit: int) -> list[dict[str, Any]]:
+    """Select a 1-based case range, rejecting empty or invalid ranges."""
+    if start < 1:
+        raise ValueError("Case start must be at least 1")
+    if limit < 1:
+        raise ValueError("Case limit must be at least 1")
+    selected = cases[start - 1:start - 1 + limit]
+    if not selected:
+        raise ValueError(f"No cases available starting at case {start}")
+    return selected
+
+
 def write_record(handle, record: dict[str, Any]) -> None:
     handle.write(json.dumps(record, ensure_ascii=False) + "\n")
     handle.flush()
@@ -119,17 +131,21 @@ def main() -> int:
     parser.add_argument("--input", type=Path, default=Path("research/pilot/cases.smoke.jsonl"))
     parser.add_argument("--output", type=Path, default=Path("research/pilot/outputs.jsonl"))
     parser.add_argument("--limit", type=int, default=5, help="Maximum cases; default 5")
+    parser.add_argument("--start", type=int, default=1, help="1-based starting case number; default 1")
     parser.add_argument("--pause", type=float, default=0.25, help="Pause between model calls")
     parser.add_argument("--append", action="store_true", help="Append instead of replacing output")
     args = parser.parse_args()
 
     if args.limit < 1:
         parser.error("--limit must be at least 1")
+    if args.start < 1:
+        parser.error("--start must be at least 1")
     if args.pause < 0:
         parser.error("--pause cannot be negative")
 
     try:
-        cases = load_cases(args.input)[:args.limit]
+        all_cases = load_cases(args.input)
+        cases = select_cases(all_cases, args.start, args.limit)
     except (OSError, ValueError) as exc:
         print(f"Input error: {exc}", file=sys.stderr)
         return 2
@@ -138,7 +154,8 @@ def main() -> int:
     mode = "a" if args.append else "w"
     model_name = __import__("os").getenv("CLOUDFLARE_MODEL", DEFAULT_MODEL)
     print(f"Model: {model_name}")
-    print(f"Cases: {len(cases)}; estimated calls: {len(cases) * 5}")
+    actual_end = args.start + len(cases) - 1
+    print(f"Cases: {args.start}-{actual_end} ({len(cases)}); estimated calls: {len(cases) * 5}")
     versions = sorted({str(case.get("dataset_version", "illustrative-smoke-v1")) for case in cases})
     print(f"Dataset version(s): {', '.join(versions)}")
     print("Misleading-condition passages are synthetic counterfactuals, not factual sources.")
