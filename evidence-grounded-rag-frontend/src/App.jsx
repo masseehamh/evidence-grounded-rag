@@ -2,9 +2,6 @@ import React, { useEffect, useState } from "react";
 import { API_BASE_URL, isApiConfigured, checkHealth, uploadDocument, askBackend, runCorrectionDemo, normalizeResult, buildAskPayload, validateUploadFile } from "./api.js";
 import { demoResult } from "./demoData.js";
 
-const EXAMPLE_QUESTION = "What results does the evidence report, and which claims are not established?";
-const EXAMPLE_EVIDENCE = "Sample report: The prototype was evaluated on a test set containing 120 examples. Measured accuracy on the held-out set was 91%. No results were reported for a 40% reduction in hallucinations across all settings.";
-
 function StatusPill({ status }) {
   const key = String(status || "UNKNOWN").toUpperCase().replaceAll(" ", "_");
   const label = key.replaceAll("_", " ");
@@ -16,6 +13,7 @@ function StatusPill({ status }) {
 
 function App() {
   const [page, setPage] = useState("home");
+  const [returnPage, setReturnPage] = useState("ask");
   const [mode, setMode] = useState("manual");
   const [question, setQuestion] = useState("");
   const [evidence, setEvidence] = useState("");
@@ -29,8 +27,6 @@ function App() {
   const [usedDemo, setUsedDemo] = useState(false);
   const [demoToken, setDemoToken] = useState("");
   const [demoScenarioId, setDemoScenarioId] = useState("eiffel_tower");
-  // Keep the controlled demo available inside the normal app; no special URL is needed.
-  const showCorrectionDemo = true;
 
   useEffect(() => {
     if (!isApiConfigured) {
@@ -118,6 +114,7 @@ function App() {
         if (mode === "document") throw new Error("Document processing is unavailable in demo mode. Connect the FastAPI upload and ask endpoints.");
         setResult(normalizeResult(demoResult));
         setUsedDemo(true);
+        setReturnPage("ask");
         setPage("results");
         return;
       }
@@ -130,6 +127,7 @@ function App() {
       const raw = await askBackend(payload);
       const normalized = normalizeResult(raw);
       setResult(normalized);
+      setReturnPage("ask");
       setPage("results");
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
@@ -153,22 +151,13 @@ function App() {
     try {
       const raw = await runCorrectionDemo(demoToken, demoScenarioId);
       setResult(normalizeResult(raw));
+      setReturnPage("correction-demo");
       setPage("results");
     } catch (err) {
       setError(err.message || "The controlled correction demo could not run.");
     } finally {
       setBusy(false);
     }
-  }
-
-  function loadExample() {
-    setMode("manual");
-    setQuestion(EXAMPLE_QUESTION);
-    setEvidence(EXAMPLE_EVIDENCE);
-    setError("");
-    setResult(null);
-    setUsedDemo(false);
-    setPage("ask");
   }
 
   return (
@@ -182,6 +171,7 @@ function App() {
         <nav className="side-nav" aria-label="Main navigation">
           <button className={page === "home" ? "nav-item active" : "nav-item"} onClick={() => setPage("home")}><span className="nav-icon">⌂</span> Overview</button>
           <button className={page === "ask" ? "nav-item active" : "nav-item"} onClick={() => setPage("ask")}><span className="nav-icon">＋</span> Ask a question</button>
+          <button className={page === "correction-demo" ? "nav-item active" : "nav-item"} onClick={() => { setPage("correction-demo"); setError(""); }}><span className="nav-icon">✳</span> Correction demo</button>
           <button className={page === "results" ? "nav-item active" : "nav-item"} disabled={!result} onClick={() => setPage("results")}><span className="nav-icon">☷</span> Verification results</button>
         </nav>
         <div className="sidebar-bottom">
@@ -192,7 +182,7 @@ function App() {
 
       <main className="main-area">
         <header className="topbar">
-          <div className="breadcrumb">Workspace <span>/</span> {page === "home" ? "Overview" : page === "ask" ? "Ask a question" : "Verification results"}</div>
+          <div className="breadcrumb">Workspace <span>/</span> {page === "home" ? "Overview" : page === "ask" ? "Ask a question" : page === "correction-demo" ? "Correction demo" : "Verification results"}</div>
           <div className="topbar-right">
             <span className={`connection ${backendStatus}`}><span />{backendStatus === "online" ? "Backend connected" : backendStatus === "checking" ? "Checking backend" : backendStatus === "offline" ? "Backend unavailable" : "Demo mode"}</span>
             <span className="avatar">ER</span>
@@ -202,8 +192,7 @@ function App() {
         <div className="content">
           {page === "home" && <HomePage
             onStart={() => setPage("ask")}
-            onDemo={() => { setPage("ask"); setError(""); setResult(null); }}
-            onExample={loadExample}
+            onDemo={() => { setPage("correction-demo"); setError(""); setResult(null); }}
           />}
           {page === "ask" && (
             <section className="page-section">
@@ -230,7 +219,14 @@ function App() {
                 {error && <div className="error-message" role="alert"><strong>Could not process request</strong><span>{error}</span></div>}
                 <div className="form-footer"><span className="privacy-note">⌑ Your input is sent only to the configured backend.</span><button className="button button-primary" type="submit" disabled={busy}>{busy ? <><span className="spinner" /> {uploading ? "Uploading document…" : "Processing…"}</> : <>Run verification <span>→</span></>}</button></div>
               </form>
-              {showCorrectionDemo && <section className="panel controlled-demo-panel">
+            </section>
+          )}
+          {page === "correction-demo" && (
+            <section className="page-section">
+              <div className="page-heading">
+                <div><div className="eyebrow">CONTROLLED DEMONSTRATION</div><h1>See an answer get corrected.</h1><p>Choose a scenario with a deliberately flawed initial answer. Verity RAG verifies the claims, corrects unsupported content, and checks the result again.</p></div>
+              </div>
+              <section className="panel controlled-demo-panel">
                 <div className="form-title"><span className="step-number">✳</span><div><h2>Try a correction scenario</h2><p>Choose one of five controlled examples. Each starts with a deliberately flawed answer, then runs verification, correction, and re-verification. Normal question answering remains separate and unchanged.</p></div></div>
                 <label htmlFor="demo-scenario">Choose a scenario</label>
                 <select id="demo-scenario" value={demoScenarioId} onChange={(e) => setDemoScenarioId(e.target.value)} disabled={busy}>
@@ -242,12 +238,12 @@ function App() {
                 </select>
                 <label htmlFor="demo-token">Demo access token</label>
                 <input id="demo-token" type="password" autoComplete="off" value={demoToken} onChange={(e) => setDemoToken(e.target.value)} placeholder="Enter the token configured in Render" />
+                {error && <div className="error-message" role="alert"><strong>Could not run correction demo</strong><span>{error}</span></div>}
                 <div className="form-footer"><span className="privacy-note">The token is sent in a request header, not in the URL.</span><button className="button button-primary" type="button" onClick={handleCorrectionDemo} disabled={busy}>{busy ? <><span className="spinner" /> Running demo…</> : <>Run correction demo <span>→</span></>}</button></div>
-              </section>}
-              <div className="example-row"><span>Need a quick demo?</span><button onClick={loadExample}>Load example question and evidence <span>↗</span></button></div>
+              </section>
             </section>
           )}
-          {page === "results" && result && <ResultsPage result={result} usedDemo={usedDemo} onAskAgain={() => setPage("ask")} />}
+          {page === "results" && result && <ResultsPage result={result} usedDemo={usedDemo} onAskAgain={() => setPage(returnPage)} backLabel={returnPage === "correction-demo" ? "← Back to correction demo" : "← Back to question"} />}
         </div>
         <footer className="app-footer"><span>Verity RAG <span className="footer-dot">·</span> Evidence-grounded answer verification</span><span>Prototype interface <span className="footer-dot">·</span> Backend: {isApiConfigured ? API_BASE_URL : "not configured"}</span></footer>
       </main>
@@ -261,7 +257,7 @@ function ModeCard({ active, icon, title, desc, onClick, disabled }) {
   </button>;
 }
 
-function HomePage({ onStart, onDemo, onExample }) {
+function HomePage({ onStart, onDemo }) {
   const steps = [
     ["01", "Retrieve evidence", "Find relevant passages in the evidence you paste or in the document you upload."],
     ["02", "Generate an answer", "Use the retrieved evidence as context for the response."],
@@ -270,7 +266,7 @@ function HomePage({ onStart, onDemo, onExample }) {
   ];
   return <section className="home-page">
     <div className="hero">
-      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> TRUSTWORTHY AI RESEARCH</div><h1>Answers should be<br /><span>backed by evidence.</span></h1><p className="hero-description">A transparent RAG workflow that checks claims, highlights uncertainty, and corrects responses when the evidence doesn't support them.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={onDemo}>Try a correction demo <span>↗</span></button><button className="button button-ghost" onClick={onExample}>View a sample <span>↗</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div></div>
+      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> TRUSTWORTHY AI RESEARCH</div><h1>Answers should be<br /><span>backed by evidence.</span></h1><p className="hero-description">A transparent RAG workflow that checks claims, highlights uncertainty, and corrects responses when the evidence doesn't support them.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={onDemo}>Try a correction demo <span>↗</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div></div>
       <div className="hero-visual" aria-label="Illustration of evidence checking">
         <div className="visual-top"><span className="visual-dot" /><span className="visual-dot" /><span className="visual-dot" /><span className="visual-title">VERIFICATION PIPELINE</span><span className="visual-live">● READY</span></div>
         <div className="pipeline">
@@ -291,7 +287,7 @@ function HomePage({ onStart, onDemo, onExample }) {
   </section>;
 }
 
-function ResultsPage({ result, usedDemo, onAskAgain }) {
+function ResultsPage({ result, usedDemo, onAskAgain, backLabel = "← Back to question" }) {
   const supported = result.claims.filter((c) => c.status === "SUPPORTED").length;
   const contradicted = result.claims.filter((c) => c.status === "CONTRADICTED").length;
   const uncertain = result.claims.filter((c) => c.status === "NOT_ENOUGH_EVIDENCE").length;
@@ -301,7 +297,7 @@ function ResultsPage({ result, usedDemo, onAskAgain }) {
     /not sufficient|no answer was generated/i.test(result.corrected_answer || "") ||
     /NOT[ _]ENOUGH[ _]EVIDENCE/i.test(result.verification_status || "");
   return <section className="page-section results-page">
-    <div className="page-heading"><div><div className="eyebrow">VERIFICATION REPORT</div><h1>Answer review.</h1><p>Review the original response, corrected answer, and evidence behind each claim.</p></div><button className="button button-ghost" onClick={onAskAgain}>← Back to question</button></div>
+    <div className="page-heading"><div><div className="eyebrow">VERIFICATION REPORT</div><h1>Answer review.</h1><p>Review the original response, corrected answer, and evidence behind each claim.</p></div><button className="button button-ghost" onClick={onAskAgain}>{backLabel}</button></div>
     {result.demo_mode && <div className="demo-banner"><span>ⓘ</span><div><strong>Controlled correction demonstration{result.demo_scenario?.title ? `: ${result.demo_scenario.title}` : "."}</strong><p>{result.demo_scenario?.description ? `${result.demo_scenario.description} ` : ""}{result.demo_notice || "The initial answer is deliberately seeded as incorrect; the backend then runs verification, correction, and re-verification."}</p>{result.demo_scenario?.expected_behavior && <p><strong>What this scenario demonstrates:</strong> {result.demo_scenario.expected_behavior}</p>}</div></div>}
     {usedDemo && <div className="demo-banner"><span>ⓘ</span><div><strong>Illustrative sample result — not generated by your AI model.</strong><p>This example only demonstrates how the interface presents verification results.</p></div></div>}
     <div className="result-summary panel"><div><div className="summary-label">OVERALL VERIFICATION</div><h2>{String(result.verification_status || "STATUS UNAVAILABLE").replaceAll("_", " ")}</h2><p>{result.message || `${result.claims.length} claims reviewed in this response`}</p></div><div className="summary-stats"><div><strong className="stat-good">{supported.toString().padStart(2, "0")}</strong><span>Supported</span></div><div><strong className="stat-bad">{contradicted.toString().padStart(2, "0")}</strong><span>Contradicted</span></div><div><strong className="stat-warn">{uncertain.toString().padStart(2, "0")}</strong><span>Uncertain</span></div></div></div>
@@ -324,7 +320,7 @@ function ResultsPage({ result, usedDemo, onAskAgain }) {
       : "No individual claims were returned. Confirm that the backend includes a `claims` array."}</div>}</div>
     {result.removed_claims?.length > 0 && <section className="removed-section"><div className="claims-heading"><div><div className="eyebrow">CORRECTION LOG</div><h2>Unsupported or removed claims</h2><p>Details omitted or changed during correction.</p></div></div><div className="removed-list panel">{result.removed_claims.map((claim, i) => <div key={i} className="removed-item"><span>−</span><p>{typeof claim === "string" ? claim : claim.claim || claim.text || JSON.stringify(claim)}</p></div>)}</div></section>}
     {result.sources?.length > 0 && <section className="sources-section"><div className="claims-heading"><div><div className="eyebrow">RETRIEVED REFERENCES</div><h2>Sources used</h2><p>Evidence sources returned by the configured backend.</p></div><span className="claim-count">{result.sources.length} sources</span></div><div className="source-list">{result.sources.map((source, i) => <article className="source-card panel" key={`${source.url || source.title || "source"}-${i}`}><span className="source-number">{String(i + 1).padStart(2, "0")}</span><div><strong>{source.title || source.name || "Untitled source"}</strong>{source.url ? <a href={source.url} target="_blank" rel="noreferrer">{source.url} ↗</a> : <span className="source-kind">Uploaded document</span>}{(source.snippet || source.passage) && <p>{source.snippet || source.passage}</p>}</div><span className="external-icon">↗</span></article>)}</div></section>}
-    <div className="result-actions"><span>Always check the cited evidence before relying on an answer.</span><button className="button button-primary" onClick={onAskAgain}>Ask another question <span>→</span></button></div>
+    <div className="result-actions"><span>Always check the cited evidence before relying on an answer.</span><button className="button button-primary" onClick={onAskAgain}>{backLabel.includes("demo") ? "Run another scenario" : "Ask another question"} <span>→</span></button></div>
   </section>;
 }
 
