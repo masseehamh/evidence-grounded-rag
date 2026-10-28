@@ -5,6 +5,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from evaluate_outputs import normalize
+from run_pilot import select_cases
 
 
 DATASET = Path(__file__).with_name("cases.audited.v1.jsonl")
@@ -50,6 +51,16 @@ class AuditedDatasetTests(unittest.TestCase):
             normalized_foil = {normalize(value) for value in row["foil_answers"]}
             self.assertFalse(normalized_gold & normalized_foil, row["case_id"])
             self.assertNotEqual(row["evidence_clean"], row["evidence_misleading"])
+
+    def test_case_range_can_select_remaining_twenty_without_repeating_first_five(self):
+        selected = select_cases(self.rows, start=6, limit=20)
+        self.assertEqual(len(selected), 20)
+        self.assertEqual(selected[0]["case_id"], "audit_006")
+        self.assertEqual(selected[-1]["case_id"], "audit_025")
+
+    def test_case_range_rejects_start_after_dataset(self):
+        with self.assertRaisesRegex(ValueError, "No cases available"):
+            select_cases(self.rows, start=26, limit=20)
 
 
 if __name__ == "__main__":

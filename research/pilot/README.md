@@ -34,7 +34,14 @@ python research/pilot/run_pilot.py --input research/pilot/cases.audited.v1.jsonl
 python research/pilot/evaluate_outputs.py --input research/pilot/outputs.audited-v1.jsonl --outdir research/pilot/results/audited-v1
 ```
 
-The manual GitHub Actions workflow also has an `audited-v1` dataset choice and limits up to 25 cases. Its default remains the small smoke set. The output JSONL and per-example CSV carry dataset and source provenance metadata.
+To continue after a five-case batch without repeating it, use a new output file and select cases 6–25:
+
+```bash
+python research/pilot/run_pilot.py --input research/pilot/cases.audited.v1.jsonl --start 6 --limit 20 --output research/pilot/outputs.audited-v1.cases-6-25.jsonl
+python research/pilot/evaluate_outputs.py --input research/pilot/outputs.audited-v1.cases-6-25.jsonl --outdir research/pilot/results/audited-v1-cases-6-25
+```
+
+The manual GitHub Actions workflow also has an `audited-v1` dataset choice, a 1-based start case, and limits up to 25 cases. Its default remains the small smoke set. The output JSONL and per-example CSV carry dataset and source provenance metadata.
 
 The output JSONL is local and intentionally not committed, because it contains model outputs. Do not use `--append` when re-running the same cases unless you want repeated records.
 

@@ -26,6 +26,11 @@ on:
           - "15"
           - "20"
           - "25"
+      case_start:
+        description: "1-based first case number (use 6 to continue after the first five)"
+        required: true
+        default: 1
+        type: number
 
 permissions:
   contents: read
@@ -69,6 +74,7 @@ jobs:
           fi
           python research/pilot/run_pilot.py \
             --input "$case_file" \
+            --start "${{ inputs.case_start }}" \
             --limit "${{ inputs.case_limit }}" \
             --output research/pilot/outputs.jsonl
 
