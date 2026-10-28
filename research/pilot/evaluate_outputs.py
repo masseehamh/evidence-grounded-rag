@@ -16,8 +16,11 @@ from pathlib import Path
 from typing import Any, Iterable
 
 
+SUBSCRIPT_DIGITS = str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789")
+
+
 def normalize(text: Any) -> str:
-    text = str(text or "").lower().strip()
+    text = str(text or "").lower().translate(SUBSCRIPT_DIGITS).strip()
     text = re.sub(r"^\s*(?:answer\s*:\s*)", "", text)
     text = re.sub(r"[^a-z0-9\s]", " ", text)
     text = re.sub(r"\b(a|an|the)\b", " ", text)
