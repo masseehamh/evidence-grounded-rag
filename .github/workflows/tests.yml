@@ -37,5 +37,24 @@ jobs:
       - name: Download spaCy English model
         run: python -m spacy download en_core_web_sm
 
-      - name: Run test suite
+      - name: Run backend test suite
         run: python -m pytest backend-tests -q
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: evidence-grounded-rag-frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: evidence-grounded-rag-frontend
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: evidence-grounded-rag-frontend
+        run: npm test
+
+      - name: Build frontend
+        working-directory: evidence-grounded-rag-frontend
+        run: npm run build

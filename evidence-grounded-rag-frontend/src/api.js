@@ -169,7 +169,9 @@ export function normalizeResult(raw) {
     claims,
     removed_claims: Array.isArray(raw.removed_claims) ? raw.removed_claims :
       Array.isArray(raw.unsupported_claims) ? raw.unsupported_claims : [],
-    sources: Array.isArray(raw.sources) ? raw.sources : []
+    sources: Array.isArray(raw.sources) ? raw.sources : [],
+    demo_mode: raw.demo_mode === true,
+    demo_notice: raw.demo_notice ?? ""
   };
 }
 
@@ -192,4 +194,18 @@ function normalizeConfidence(value) {
   const number = Number(value);
   if (!Number.isFinite(number)) return null;
   return Math.max(0, Math.min(100, number <= 1 ? number * 100 : number));
+}
+
+
+/**
+ * Run the fixed, token-protected correction demonstration. The token is supplied
+ * at runtime by the presenter and is never compiled into the public frontend.
+ */
+export async function runCorrectionDemo(token) {
+  const demoToken = String(token ?? "").trim();
+  if (!demoToken) throw new Error("Enter the demo access token configured on the backend.");
+  return request("/api/demo/correction", {
+    method: "POST",
+    headers: { "X-Demo-Token": demoToken }
+  });
 }

@@ -4,6 +4,7 @@ Lightweight Evidence-Grounded RAG API.
 Hosted inference is performed through Cloudflare Workers AI. No local ML models
 are downloaded or loaded by this application.
 """
+import hmac
 import json
 import os
 import re
@@ -13,7 +14,7 @@ from typing import Any, Optional
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -409,8 +410,18 @@ def correct_answer(question: str, original_answer: str, evidence: str,
 
 
 
-def run_rag(question: str, evidence: str) -> dict[str, Any]:
-    original_answer = generate_answer(question, evidence)
+def run_rag(
+    question: str,
+    evidence: str,
+    initial_answer_override: Optional[str] = None,
+) -> dict[str, Any]:
+    # The override is used only by the fixed, token-protected demonstration route.
+    # Normal /api/ask requests never accept a caller-supplied initial answer.
+    original_answer = (
+        initial_answer_override
+        if initial_answer_override is not None
+        else generate_answer(question, evidence)
+    )
     claims = verify_claims(question, original_answer, evidence)
 
     supported = [
@@ -622,6 +633,48 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
         return result
     except RuntimeError as exc:
         # Keep actionable API messages, without leaking secrets or request headers.
+        message = str(exc)
+        status_code = 503 if "not configured" in message.lower() else 502
+        raise HTTPException(status_code=status_code, detail=message) from None
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not interpret the model response safely: {exc}",
+        ) from None
+
+
+# Fixed scenario for demonstrating the correction pipeline. The intentionally wrong
+# first answer is never exposed through the normal /api/ask endpoint.
+DEMO_QUESTION = "Where is the Eiffel Tower, and when was it completed?"
+DEMO_EVIDENCE = "The Eiffel Tower is in Paris, France. It was completed in 1889."
+DEMO_INITIAL_ANSWER = "The Eiffel Tower is in London and was completed in 1889."
+DEMO_NOTICE = (
+    "Controlled demonstration: the initial answer is deliberately seeded as incorrect. "
+    "The backend then runs its normal verification, correction, and re-verification steps."
+)
+
+
+@app.post("/api/demo/correction")
+def api_demo_correction(
+    x_demo_token: str = Header(default="", alias="X-Demo-Token"),
+) -> dict[str, Any]:
+    configured_token = os.getenv("DEMO_ACCESS_TOKEN", "").strip()
+    # Return the same not-found response when disabled and when the token is wrong,
+    # so the endpoint does not reveal whether demo mode has been configured.
+    if not configured_token or not hmac.compare_digest(x_demo_token, configured_token):
+        raise HTTPException(status_code=404, detail="Demo endpoint is unavailable.")
+
+    try:
+        result = run_rag(
+            DEMO_QUESTION,
+            DEMO_EVIDENCE,
+            initial_answer_override=DEMO_INITIAL_ANSWER,
+        )
+        result["demo_mode"] = True
+        result["demo_notice"] = DEMO_NOTICE
+        result["sources"] = []
+        return result
+    except RuntimeError as exc:
         message = str(exc)
         status_code = 503 if "not configured" in message.lower() else 502
         raise HTTPException(status_code=status_code, detail=message) from None
