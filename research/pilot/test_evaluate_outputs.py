@@ -54,6 +54,15 @@ class EvaluateOutputsTests(unittest.TestCase):
             path.write_text(json.dumps(row) + "\n", encoding="utf-8")
             self.assertEqual(len(read_jsonl(path)), 1)
 
+    def test_unicode_subscript_in_chemical_formula_matches_ascii(self):
+        row = evaluate_row({
+            "case_id": "chem_1", "condition": "clean", "strategy": "baseline",
+            "initial_answer": "H₂O", "final_answer": "H₂O",
+            "gold_answers": ["H2O"],
+        })
+        self.assertEqual(row["initial_exact_match"], 1)
+        self.assertEqual(row["final_exact_match"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()
