@@ -3,8 +3,16 @@ name: Research pilot (manual)
 on:
   workflow_dispatch:
     inputs:
+      dataset:
+        description: "Dataset to run"
+        required: true
+        default: "smoke"
+        type: choice
+        options:
+          - "smoke"
+          - "audited-v1"
       case_limit:
-        description: "Number of illustrative smoke cases to run (1–5)"
+        description: "Maximum cases; each case makes about 5 model calls (up to 125 calls)"
         required: true
         default: "2"
         type: choice
@@ -14,6 +22,10 @@ on:
           - "3"
           - "4"
           - "5"
+          - "10"
+          - "15"
+          - "20"
+          - "25"
 
 permissions:
   contents: read
@@ -49,9 +61,14 @@ jobs:
       - name: Install backend dependencies
         run: python -m pip install -r backend/requirements.txt
 
-      - name: Run illustrative smoke experiment
+      - name: Run selected pilot dataset
         run: |
+          case_file="research/pilot/cases.smoke.jsonl"
+          if [ "${{ inputs.dataset }}" = "audited-v1" ]; then
+            case_file="research/pilot/cases.audited.v1.jsonl"
+          fi
           python research/pilot/run_pilot.py \
+            --input "$case_file" \
             --limit "${{ inputs.case_limit }}" \
             --output research/pilot/outputs.jsonl
 
