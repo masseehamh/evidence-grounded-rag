@@ -171,7 +171,8 @@ export function normalizeResult(raw) {
       Array.isArray(raw.unsupported_claims) ? raw.unsupported_claims : [],
     sources: Array.isArray(raw.sources) ? raw.sources : [],
     demo_mode: raw.demo_mode === true,
-    demo_notice: raw.demo_notice ?? ""
+    demo_notice: raw.demo_notice ?? "",
+    demo_scenario: raw.demo_scenario ?? null
   };
 }
 
@@ -198,13 +199,14 @@ function normalizeConfidence(value) {
 
 
 /**
- * Run the fixed, token-protected correction demonstration. The token is supplied
+ * Run an allowlisted, token-protected correction scenario. The token is supplied
  * at runtime by the presenter and is never compiled into the public frontend.
  */
-export async function runCorrectionDemo(token) {
+export async function runCorrectionDemo(token, scenarioId = "eiffel_tower") {
   const demoToken = String(token ?? "").trim();
   if (!demoToken) throw new Error("Enter the demo access token configured on the backend.");
-  return request("/api/demo/correction", {
+  const scenario = encodeURIComponent(String(scenarioId || "eiffel_tower"));
+  return request(`/api/demo/correction?scenario_id=${scenario}`, {
     method: "POST",
     headers: { "X-Demo-Token": demoToken }
   });

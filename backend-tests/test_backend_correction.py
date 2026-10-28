@@ -242,3 +242,62 @@ def test_demo_endpoint_calls_pipeline_only_with_valid_token(monkeypatch):
     }
     assert result["demo_mode"] is True
     assert "deliberately seeded as incorrect" in result["demo_notice"]
+
+
+
+def test_demo_scenarios_are_allowlisted_and_have_required_fields():
+    assert len(app.DEMO_SCENARIOS) >= 5
+    required = {"title", "description", "question", "evidence", "initial_answer", "expected_behavior"}
+    for scenario in app.DEMO_SCENARIOS.values():
+        assert required.issubset(scenario)
+        assert scenario["question"].strip()
+        assert scenario["evidence"].strip()
+        assert scenario["initial_answer"].strip()
+
+
+def test_demo_endpoint_selects_requested_scenario(monkeypatch):
+    monkeypatch.setenv("DEMO_ACCESS_TOKEN", "expected-secret")
+    captured = {}
+
+    def fake_run_rag(question, evidence, initial_answer_override=None):
+        captured.update({
+            "question": question,
+            "evidence": evidence,
+            "initial_answer_override": initial_answer_override,
+        })
+        return {
+            "original_answer": initial_answer_override,
+            "corrected_answer": "The evidence does not contain enough information.",
+            "corrected_status": "NOT_ENOUGH_EVIDENCE",
+            "correction_attempted": True,
+        }
+
+    monkeypatch.setattr(app, "run_rag", fake_run_rag)
+    result = app.api_demo_correction(
+        x_demo_token="expected-secret",
+        scenario_id="insufficient_evidence",
+    )
+
+    scenario = app.DEMO_SCENARIOS["insufficient_evidence"]
+    assert captured == {
+        "question": scenario["question"],
+        "evidence": scenario["evidence"],
+        "initial_answer_override": scenario["initial_answer"],
+    }
+    assert result["demo_scenario"]["id"] == "insufficient_evidence"
+    assert result["demo_scenario"]["title"] == "Insufficient evidence"
+
+
+def test_demo_endpoint_rejects_unknown_scenario(monkeypatch):
+    from fastapi import HTTPException
+
+    monkeypatch.setenv("DEMO_ACCESS_TOKEN", "expected-secret")
+    try:
+        app.api_demo_correction(
+            x_demo_token="expected-secret",
+            scenario_id="not-a-real-scenario",
+        )
+    except HTTPException as exc:
+        assert exc.status_code == 404
+    else:
+        raise AssertionError("Unknown scenarios must not be accepted")

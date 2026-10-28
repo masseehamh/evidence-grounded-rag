@@ -643,11 +643,56 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
         ) from None
 
 
-# Fixed scenario for demonstrating the correction pipeline. The intentionally wrong
-# first answer is never exposed through the normal /api/ask endpoint.
-DEMO_QUESTION = "Where is the Eiffel Tower, and when was it completed?"
-DEMO_EVIDENCE = "The Eiffel Tower is in Paris, France. It was completed in 1889."
-DEMO_INITIAL_ANSWER = "The Eiffel Tower is in London and was completed in 1889."
+# Fixed, allowlisted scenarios for demonstrating the correction pipeline.
+# Each seeded initial answer is deliberately flawed; every scenario still uses the
+# normal verification, correction, and re-verification pipeline.
+DEMO_SCENARIOS: dict[str, dict[str, str]] = {
+    "eiffel_tower": {
+        "title": "Contradicted fact",
+        "description": "The initial answer puts the Eiffel Tower in London instead of Paris.",
+        "question": "Where is the Eiffel Tower, and when was it completed?",
+        "evidence": "The Eiffel Tower is in Paris, France. It was completed in 1889.",
+        "initial_answer": "The Eiffel Tower is in London and was completed in 1889.",
+        "expected_behavior": "Correct the contradicted location while retaining the supported completion year.",
+    },
+    "wrong_count": {
+        "title": "Incorrect number",
+        "description": "The initial answer gives the library the wrong number of floors.",
+        "question": "How many floors does the library have, and when did it open?",
+        "evidence": "The library opened in 2012. It has three floors.",
+        "initial_answer": "The library opened in 2012. It has five floors.",
+        "expected_behavior": "Keep the supported opening year and correct the unsupported floor count.",
+    },
+    "unsupported_cause": {
+        "title": "Unsupported explanation",
+        "description": "The initial answer adds a cause that the report does not establish.",
+        "question": "How did test scores change, and what caused the change?",
+        "evidence": "After the training program, average test scores rose from 68 to 81.",
+        "initial_answer": "After training, average test scores rose from 68 to 81 because the program increased motivation.",
+        "expected_behavior": "Retain the reported score change but remove the unproven causal explanation.",
+    },
+    "insufficient_evidence": {
+        "title": "Insufficient evidence",
+        "description": "The initial answer invents a construction cost that is absent from the evidence.",
+        "question": "How much did the community center cost to build?",
+        "evidence": "The community center opened in 2021 and hosts weekly workshops.",
+        "initial_answer": "The community center cost $2 million to build.",
+        "expected_behavior": "Withhold the invented cost and state that the evidence is insufficient.",
+    },
+    "mixed_claims": {
+        "title": "Mixed claim statuses",
+        "description": "The initial answer mixes one supported fact, one wrong number, and one unverified detail.",
+        "question": "When did the library open, how many floors does it have, and how many visitors does it serve daily?",
+        "evidence": "The library opened in 2012. It has three floors.",
+        "initial_answer": "The library opened in 2012. It has five floors. It serves 800 visitors daily.",
+        "expected_behavior": "Preserve supported information, correct the contradicted count, and remove the unverified visitor figure.",
+    },
+}
+
+# Backwards-compatible aliases used by existing regression tests.
+DEMO_QUESTION = DEMO_SCENARIOS["eiffel_tower"]["question"]
+DEMO_EVIDENCE = DEMO_SCENARIOS["eiffel_tower"]["evidence"]
+DEMO_INITIAL_ANSWER = DEMO_SCENARIOS["eiffel_tower"]["initial_answer"]
 DEMO_NOTICE = (
     "Controlled demonstration: the initial answer is deliberately seeded as incorrect. "
     "The backend then runs its normal verification, correction, and re-verification steps."
@@ -657,6 +702,7 @@ DEMO_NOTICE = (
 @app.post("/api/demo/correction")
 def api_demo_correction(
     x_demo_token: str = Header(default="", alias="X-Demo-Token"),
+    scenario_id: str = "eiffel_tower",
 ) -> dict[str, Any]:
     configured_token = os.getenv("DEMO_ACCESS_TOKEN", "").strip()
     # Return the same not-found response when disabled and when the token is wrong,
@@ -664,13 +710,23 @@ def api_demo_correction(
     if not configured_token or not hmac.compare_digest(x_demo_token, configured_token):
         raise HTTPException(status_code=404, detail="Demo endpoint is unavailable.")
 
+    scenario = DEMO_SCENARIOS.get(scenario_id)
+    if scenario is None:
+        raise HTTPException(status_code=404, detail="Unknown demonstration scenario.")
+
     try:
         result = run_rag(
-            DEMO_QUESTION,
-            DEMO_EVIDENCE,
-            initial_answer_override=DEMO_INITIAL_ANSWER,
+            scenario["question"],
+            scenario["evidence"],
+            initial_answer_override=scenario["initial_answer"],
         )
         result["demo_mode"] = True
+        result["demo_scenario"] = {
+            "id": scenario_id,
+            "title": scenario["title"],
+            "description": scenario["description"],
+            "expected_behavior": scenario["expected_behavior"],
+        }
         result["demo_notice"] = DEMO_NOTICE
         result["sources"] = []
         return result
