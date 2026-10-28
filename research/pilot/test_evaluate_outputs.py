@@ -136,6 +136,21 @@ class EvaluateOutputsTests(unittest.TestCase):
         self.assertEqual(row["initial_exact_match"], 1)
         self.assertEqual(row["final_exact_match"], 1)
 
+    def test_source_provenance_is_preserved_in_per_example_rows(self):
+        row = evaluate_row({
+            "case_id": "audit_1", "condition": "clean", "strategy": "retrieval_only",
+            "initial_answer": "Canberra", "final_answer": "Canberra", "gold_answers": ["Canberra"],
+            "dataset_version": "audited-v1", "category": "geography",
+            "source_url": "https://example.gov/fact", "source_title": "Fact page",
+            "source_publisher": "Example Agency", "source_accessed_at": "2026-10-28",
+            "evidence_misleading_type": "synthetic_counterfactual",
+            "evidence_misleading_note": "Generated false counterfactual; not source text.",
+        })
+        self.assertEqual(row["dataset_version"], "audited-v1")
+        self.assertEqual(row["source_url"], "https://example.gov/fact")
+        self.assertEqual(row["source_publisher"], "Example Agency")
+        self.assertEqual(row["evidence_misleading_type"], "synthetic_counterfactual")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Run a small paired evidence-correction pilot with the project's Cloudflare model.
+"""Run a paired evidence-correction pilot with the project's Cloudflare model.
 
-This script produces model outputs, not research conclusions. Start with the
-clearly illustrative smoke cases; replace them with an audited benchmark before
-any publication-quality experiment. Requires CLOUDFLARE_ACCOUNT_ID and
-CLOUDFLARE_API_TOKEN in the environment.
+This script produces model outputs, not research conclusions. The default data
+are illustrative smoke cases; the source-checked starter set is still not a
+validated benchmark. Requires CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN.
 """
 from __future__ import annotations
 
@@ -14,6 +13,7 @@ import sys
 import time
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 # Import the same inference function used by the application so the pilot uses
 # the configured Cloudflare model and existing error handling.
@@ -87,6 +87,22 @@ def load_cases(path: Path) -> list[dict[str, Any]]:
             missing = [key for key in required if key not in case]
             if missing:
                 raise ValueError(f"Line {line_no} missing fields: {missing}")
+            if case.get("dataset_version"):
+                audit_fields = (
+                    "category", "source_title", "source_publisher", "source_accessed_at",
+                    "evidence_misleading_type", "evidence_misleading_note",
+                )
+                missing_audit_fields = [key for key in audit_fields if not case.get(key)]
+                if missing_audit_fields:
+                    raise ValueError(
+                        f"Line {line_no} missing source-audit fields: {missing_audit_fields}"
+                    )
+                if urlparse(str(case["source_url"])).scheme != "https":
+                    raise ValueError(f"Line {line_no} source_url must use HTTPS")
+                if case["evidence_misleading_type"] != "synthetic_counterfactual":
+                    raise ValueError(
+                        f"Line {line_no} misleading evidence must be labeled synthetic_counterfactual"
+                    )
             cases.append(case)
     if not cases:
         raise ValueError(f"No cases found in {path}")
@@ -123,7 +139,9 @@ def main() -> int:
     model_name = __import__("os").getenv("CLOUDFLARE_MODEL", DEFAULT_MODEL)
     print(f"Model: {model_name}")
     print(f"Cases: {len(cases)}; estimated calls: {len(cases) * 5}")
-    print("Smoke cases are illustrative only; outputs are not publication results.")
+    versions = sorted({str(case.get("dataset_version", "illustrative-smoke-v1")) for case in cases})
+    print(f"Dataset version(s): {', '.join(versions)}")
+    print("Misleading-condition passages are synthetic counterfactuals, not factual sources.")
 
     try:
         with args.output.open(mode, encoding="utf-8") as out:
@@ -131,12 +149,22 @@ def main() -> int:
                 print(f"[{index}/{len(cases)}] {case['case_id']}: generating initial answer")
                 initial = generate_initial(case["question"])
                 time.sleep(args.pause)
+                provenance = {
+                    "dataset_version": case.get("dataset_version", "illustrative-smoke-v1"),
+                    "category": case.get("category", "illustrative_smoke"),
+                    "source_title": case.get("source_title", ""),
+                    "source_publisher": case.get("source_publisher", ""),
+                    "source_accessed_at": case.get("source_accessed_at", ""),
+                    "evidence_misleading_type": case.get("evidence_misleading_type", "synthetic_counterfactual"),
+                    "evidence_misleading_note": case.get("evidence_misleading_note", ""),
+                }
                 write_record(out, {
                     "case_id": case["case_id"], "condition": "no_retrieval",
                     "strategy": "no_correction", "initial_answer": initial,
                     "final_answer": initial, "gold_answers": case["gold_answers"],
                     "foil_answers": case["foil_answers"], "source_url": case["source_url"],
                     "model": model_name, "record_type": "smoke_experiment",
+                    **provenance,
                 })
 
                 for condition, evidence_key in (
@@ -152,6 +180,7 @@ def main() -> int:
                         "final_answer": retrieved, "gold_answers": case["gold_answers"],
                         "foil_answers": case["foil_answers"], "source_url": case["source_url"],
                         "model": model_name, "record_type": "smoke_experiment",
+                        **provenance,
                     })
                     time.sleep(args.pause)
                     print(f"  - {condition}: generative correction")
@@ -162,6 +191,7 @@ def main() -> int:
                         "final_answer": corrected, "gold_answers": case["gold_answers"],
                         "foil_answers": case["foil_answers"], "source_url": case["source_url"],
                         "model": model_name, "record_type": "smoke_experiment",
+                        **provenance,
                     })
                     time.sleep(args.pause)
     except Exception as exc:
@@ -170,7 +200,7 @@ def main() -> int:
         return 1
 
     print(f"Wrote model outputs to {args.output}")
-    print("Next: evaluate with evaluate_outputs.py; manually inspect every smoke example.")
+    print("Next: evaluate with evaluate_outputs.py and manually inspect flagged examples.")
     return 0
 
 

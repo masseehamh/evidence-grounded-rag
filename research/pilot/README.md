@@ -4,7 +4,7 @@ This folder contains a dependency-free output evaluator and a runner that uses t
 
 ## Important research caveat
 
-`cases.smoke.jsonl` contains five **illustrative smoke-test cases**, not a validated research dataset. Each misleading passage is a deliberately false counterfactual constructed for pipeline testing. It must never be represented as a real source or used to make broad scientific claims. The `source_url` points to a page to verify the clean fact; verify the page and data reuse conditions before building the actual study.
+`cases.smoke.jsonl` contains five illustrative smoke-test cases. `cases.audited.v1.jsonl` is a 25-case, source-checked starter set, not a validated benchmark or publication-ready dataset. Its clean evidence is paraphrased from the linked authoritative source pages. Every misleading passage is a synthetic false counterfactual; it is not quoted from or attributed to those sources. The case file records source title, publisher, access date, and this counterfactual status for review. See `DATASET_AUDIT.md` for scope, source checks, and limitations.
 
 ## Requirements
 
@@ -24,6 +24,17 @@ python -m unittest discover -s research/pilot -p 'test_*.py' -v
 ```
 
 The runner uses five model calls per case: one initial answer without evidence, then retrieval-only and correction runs with both clean and misleading evidence. A two-case smoke run therefore makes about ten calls. This is an engineering smoke test, not a full research protocol.
+
+## Run the source-checked starter set
+
+This set has 25 cases, so a complete run makes about 125 model calls. It may incur inference cost and takes longer than the smoke run. From the repository root:
+
+```bash
+python research/pilot/run_pilot.py --input research/pilot/cases.audited.v1.jsonl --limit 25 --output research/pilot/outputs.audited-v1.jsonl
+python research/pilot/evaluate_outputs.py --input research/pilot/outputs.audited-v1.jsonl --outdir research/pilot/results/audited-v1
+```
+
+The manual GitHub Actions workflow also has an `audited-v1` dataset choice and limits up to 25 cases. Its default remains the small smoke set. The output JSONL and per-example CSV carry dataset and source provenance metadata.
 
 The output JSONL is local and intentionally not committed, because it contains model outputs. Do not use `--append` when re-running the same cases unless you want repeated records.
 
@@ -49,4 +60,4 @@ The evaluator uses exact-match aliases and token F1, which are only smoke-test m
 
 ## Data format
 
-Each case needs `case_id`, `question`, `gold_answers`, `foil_answers`, `evidence_clean`, `evidence_misleading`, and `source_url`. Keep the same `case_id` across evidence conditions.
+Each case needs `case_id`, `question`, `gold_answers`, `foil_answers`, `evidence_clean`, `evidence_misleading`, and `source_url`. Source-checked cases also include `dataset_version`, `category`, `source_title`, `source_publisher`, `source_accessed_at`, `evidence_misleading_type`, and `evidence_misleading_note`. Keep the same `case_id` across evidence conditions.
