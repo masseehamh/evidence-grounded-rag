@@ -1,7 +1,11 @@
+import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
+# Support both running this file directly and unittest discovery from the repo root.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from evaluate_outputs import evaluate_row, read_jsonl, summarize
 
 
@@ -52,5 +56,4 @@ class EvaluateOutputsTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    import json
     unittest.main()
