@@ -1,0 +1,6 @@
+"condition","strategy","n","initial_accuracy","final_accuracy","manual_correct","manual_mixed","manual_incorrect","manual_abstention","manual_unreviewed"
+"clean","generative_correction","5","0.600000","0.600000","2",,,,"3"
+"clean","retrieval_only","5","0.800000","0.800000","1",,,,"4"
+"misleading","generative_correction","5","0.600000","0.000000","2","2",,"1",
+"misleading","retrieval_only","5","0.000000","0.000000",,,"5",,
+"no_retrieval","no_correction","5","0.600000","0.600000","2",,,,"3"
