@@ -27,6 +27,20 @@ class EvaluateOutputsTests(unittest.TestCase):
         self.assertEqual(harmful["harmful_change"], 1)
         self.assertEqual(harmful["foil_adoption"], 1)
 
+    def test_alias_mention_is_diagnostic_not_exact_match(self):
+        row = evaluate_row({
+            "case_id": "3", "condition": "misleading", "strategy": "correction",
+            "initial_answer": "Canberra",
+            "final_answer": "The evidence contradicts the draft. The capital of Australia is Canberra.",
+            "gold_answers": ["Canberra"],
+            "foil_answers": ["Sydney"],
+        })
+        self.assertEqual(row["final_exact_match"], 0)
+        self.assertEqual(row["final_gold_alias_mentioned"], 1)
+        self.assertEqual(row["final_foil_alias_mentioned"], 0)
+        self.assertEqual(row["manual_factuality_label"], "")
+        self.assertEqual(row["manual_review_notes"], "")
+
     def test_summary_denominators_use_initial_state(self):
         rows = [
             evaluate_row({"case_id": "1", "condition": "clean", "strategy": "x",
