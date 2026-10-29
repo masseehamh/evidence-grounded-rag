@@ -66,7 +66,7 @@ function looksLikeHtml(text) {
 // A Render URL is a hosted service, not a Colab/ngrok tunnel.
 function offlineHint() {
   if (/https:\/\/(?:[^/]+\.)?ngrok(?:-free)?\.(?:app|dev|io)\b/i.test(API_BASE_URL)) {
-    return ` The URL ${API_BASE_URL} is an ngrok tunnel: if its Colab runtime stopped, restart the runtime, re-run the FastAPI + ngrok cell, and update VITE_API_BASE_URL with the new tunnel URL.`;
+    return ` The URL ${API_BASE_URL} is a Colab/ngrok tunnel and may be offline. If the tunnel expired, restart it by re-running the FastAPI + ngrok cell, then update VITE_API_BASE_URL with the new tunnel URL.`;
   }
   if (/\.onrender\.com\/?$/i.test(API_BASE_URL)) {
     return ` The URL is a Render service. Check the backend service's Events and Logs in Render, then open ${API_BASE_URL}/api/health. If it is waking from an idle state, wait about a minute and retry. If the health URL works but this app still cannot connect, check the frontend's configured VITE_API_BASE_URL and browser console for a CORS/network error.`;
@@ -142,8 +142,8 @@ export async function askBackend(payload) {
 // Builds the JSON body for POST /api/ask. Kept here (not inside the component) so it can be tested.
 // Keep payload construction aligned with the deployed FastAPI modes.
 export function buildAskPayload({ mode, question, evidence = "", documentId = "" }) {
-  if (!["manual", "document", "web"].includes(mode)) {
-    throw new Error(`Unsupported evidence mode "${mode}". Use manual, document, or web.`);
+  if (!["manual", "document"].includes(mode)) {
+    throw new Error(`Unsupported evidence mode "${mode}". Use manual or document.`);
   }
   const payload = { question: String(question ?? "").trim(), mode };
   if (mode === "manual") payload.evidence = String(evidence ?? "").trim();
