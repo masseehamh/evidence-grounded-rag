@@ -1138,3 +1138,45 @@ body { background:radial-gradient(ellipse at 80% 0%,#eee7f0 0,transparent 28rem)
 @media(prefers-reduced-motion:reduce) {
   .hero::before,.hero::after,.hero-visual::before,.hero-visual .orbit-ring,.hero-visual .orbit-spark,.hero-visual .orbit-check { animation:none !important; }
 }
+
+
+/* Final motion polish: smaller orbit, legible workflow, consistent letter reveals. */
+.hero-visual { position:relative; }
+.hero-visual .hallucination-orbit {
+  width:clamp(105px,10vw,145px) !important;
+  height:clamp(105px,10vw,145px) !important;
+  top:4% !important;
+  right:4% !important;
+  opacity:.72 !important;
+  pointer-events:none;
+}
+.hero-visual .orbit-ring { border-width:1px !important; box-shadow:0 0 0 5px #b9acd008 !important; }
+.hero-visual .orbit-spark,.hero-visual .orbit-check { transform:scale(.8); }
+.hero-visual .orbit-dot { width:8px; height:8px; }
+.hero-visual .pipeline-node strong,.hero-visual .claim-mini strong { color:#f7f2ff !important; }
+.hero-visual .pipeline-node small,.hero-visual .claim-mini small { color:#e1d9ed !important; }
+.hero-visual .visual-title,.hero-visual .visual-live,.hero-visual .visual-caption { color:#f0e9fa !important; }
+.sidebar-note .note-icon { color:#cbb9e5 !important; }
+.sidebar-note { border-color:#4c4357 !important; }
+.sidebar .nav-item:last-child .nav-icon { color:#d7c1f0 !important; }
+.animated-text { display:inline; }
+.animated-text .type-letter { display:inline-block; opacity:0; animation:letter-arrive .42s cubic-bezier(.2,.75,.2,1) forwards; animation-delay:calc(var(--letter-index) * 32ms + 80ms); }
+.hero-title .type-letter { animation-delay:calc(var(--letter-index) * 32ms + 120ms) !important; }
+.hero-title .type-letter { animation-name:letter-arrive !important; animation-duration:.42s !important; animation-fill-mode:forwards !important; }
+.hero-title .type-letter { opacity:0; }
+@keyframes letter-arrive { from { opacity:0; transform:translateY(9px); } to { opacity:1; transform:translateY(0); } }
+.hero .eyebrow .type-letter { animation-delay:calc(var(--letter-index) * 28ms + 80ms); }
+.page-heading h1 .animated-text .type-letter { animation-delay:calc(var(--letter-index) * 34ms + 90ms); }
+.behind-intro { animation:hero-rise .65s ease both; animation-delay:.25s; }
+.behind-card { animation:hero-rise .6s ease both; }
+.behind-card:nth-child(1) { animation-delay:.16s; }
+.behind-card:nth-child(2) { animation-delay:.28s; }
+.behind-card:nth-child(3) { animation-delay:.4s; }
+.behind-card:nth-child(4) { animation-delay:.52s; }
+@media(max-width:800px) {
+ .hero-visual .hallucination-orbit { width:88px !important; height:88px !important; top:3% !important; right:3% !important; }
+}
+@media(prefers-reduced-motion:reduce) {
+ .animated-text .type-letter,.hero-title .type-letter { opacity:1 !important; animation:none !important; transform:none !important; }
+ .behind-intro,.behind-card { animation:none !important; }
+}
