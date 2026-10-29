@@ -745,3 +745,26 @@ body { background:radial-gradient(ellipse at 80% 0%,#eee7f0 0,transparent 28rem)
  .behind-emoji { flex-basis:42px; width:42px; height:42px; font-size:22px; }
  .breadcrumb { gap:6px; font-size:12px; }
 }
+
+
+/* Readability fixes requested after checking laptop and mobile layouts. */
+@media (min-width:801px) {
+  .hero { grid-template-columns:minmax(0,1fr) minmax(320px,.92fr); gap:clamp(24px,3vw,48px); }
+  .hero-title { font-size:clamp(38px,3.35vw,54px) !important; letter-spacing:-2px !important; }
+  .hero-title .type-line { white-space:nowrap; flex-wrap:nowrap; }
+  .hero-copy { min-width:0; }
+}
+@media (max-width:800px) {
+  .sidebar { width:min(300px,85vw) !important; padding:22px 15px 18px !important; }
+  .nav-item { justify-content:flex-start !important; padding:12px 13px !important; font-size:12px !important; gap:12px !important; }
+  .nav-item .nav-icon { flex:0 0 22px; width:22px; font-size:16px; text-align:center; }
+  .nav-item-hint { display:block; }
+  .nav-label { display:block; }
+  .brand > span:last-child { display:flex; }
+  .sidebar-note { display:flex; }
+  .sidebar-foot { display:block; }
+}
+@media (max-width:540px) {
+  .hero-title { font-size:clamp(32px,8.3vw,42px) !important; letter-spacing:-1.4px !important; }
+  .hero-title .type-line { white-space:normal; }
+}
