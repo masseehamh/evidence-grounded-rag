@@ -808,16 +808,20 @@ def search_web_evidence(question: str, max_results: int = 15) -> list[dict[str, 
         f"{query} health fitness exercise",
     ]))
     gathered: list[dict[str, Any]] = []
+    successful_searches = 0
     try:
         with DDGS() as ddgs:
             for search_query in queries:
                 try:
                     gathered.extend(ddgs.text(search_query, max_results=max(5, min(max_results, 10))) or [])
+                    successful_searches += 1
                 except Exception:
                     # A failed variant should not discard results from other variants.
                     continue
     except Exception:
         raise RuntimeError("Web search is temporarily unavailable. Please try again later.") from None
+    if successful_searches == 0:
+        raise RuntimeError("Web search is temporarily unavailable. Please try again later.")
 
     sources: list[dict[str, str]] = []
     seen_urls: set[str] = set()
