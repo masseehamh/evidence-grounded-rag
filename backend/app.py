@@ -927,6 +927,28 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
             f"{source['title']}: {source['passage']}" for source in sources
         )
         if not evidence.strip():
+            # A declarative claim (for example, "I'm Batman") should still be
+            # shown and assessed as the user's claim when web retrieval finds no
+            # sources. Returning the generic empty-search response here bypasses
+            # claim-check mode and misleadingly says no answer was generated.
+            if looks_like_claim_check(question):
+                try:
+                    result = run_rag(question, "")
+                    result["sources"] = sources
+                    result["message"] = (
+                        "No web evidence was retrieved. The statement is shown as a "
+                        "claim and remains unverified; this is not proof that it is false."
+                    )
+                    return result
+                except RuntimeError as exc:
+                    message = str(exc)
+                    status_code = 503 if "not configured" in message.lower() else 502
+                    raise HTTPException(status_code=status_code, detail=message) from None
+                except ValueError as exc:
+                    raise HTTPException(
+                        status_code=502,
+                        detail=f"Could not interpret the model response safely: {exc}",
+                    ) from None
             return make_insufficient_response(sources)
         evidence = evidence[:MAX_EVIDENCE_CHARS]
     else:
