@@ -17,6 +17,7 @@ from urllib.request import Request, urlopen
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from ddgs import DDGS
 
 APP_VERSION = "2.0.0"
 DEFAULT_MODEL = "@cf/zai-org/glm-4.7-flash"
@@ -565,6 +566,26 @@ def retrieve_document_context(question: str, document_text: str, top_k: int = 3)
     return [item for item in ranked[:top_k] if item[1] > 0.0]
 
 
+
+def search_web_evidence(question: str, max_results: int = 5) -> list[dict[str, str]]:
+    """Retrieve short web passages for evidence-grounded answering."""
+    try:
+        results = DDGS().text(question, max_results=max_results)
+    except Exception:
+        raise RuntimeError("Web search is temporarily unavailable. Please try again later.") from None
+
+    sources: list[dict[str, str]] = []
+    for item in results or []:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title") or "Web result").strip()
+        url = str(item.get("href") or item.get("url") or "").strip()
+        passage = str(item.get("body") or item.get("snippet") or "").strip()
+        if passage:
+            sources.append({"title": title, "url": url, "passage": passage})
+    return sources
+
+
 @app.get("/health")
 @app.get("/api/health")
 def api_health() -> dict[str, Any]:
@@ -624,8 +645,16 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
             {"title": document["filename"], "url": "", "passage": passage}
             for passage, _score in passages
         ]
+    elif mode == "web":
+        sources = search_web_evidence(question)
+        evidence = "\\n".join(
+            f"{source['title']}: {source['passage']}" for source in sources
+        )
+        if not evidence.strip():
+            return make_insufficient_response(sources)
+        evidence = evidence[:MAX_EVIDENCE_CHARS]
     else:
-        raise HTTPException(status_code=400, detail="Unknown mode. Use manual or document.")
+        raise HTTPException(status_code=400, detail="Unknown mode. Use manual, document, or web.")
 
     try:
         result = run_rag(question, evidence)
