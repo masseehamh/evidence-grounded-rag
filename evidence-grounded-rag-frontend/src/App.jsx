@@ -281,7 +281,7 @@ function BehindScenesPage({ onStart, onEvaluation }) {
     <div className="page-heading">
       <div><div className="eyebrow">THE CURIOUS CORNER</div><h1>Curious about the behind-the-scenes?</h1><p>No deep tech dive needed. Here’s the vibe, step by step.</p></div>
     </div>
-    <div className="behind-intro panel"><span className="behind-emoji">🕵️</span><div><h2>So, how does Hally catch a hallucination?</h2><p>It doesn’t just take an AI answer at face value. Hally looks at the evidence, checks the claims against it, and shows you where things line up — or don’t.</p></div></div>
+    <div className="behind-intro panel"><div className="behind-intro-kicker">THE SHORT VERSION</div><h2>Good answers show their work.</h2><p>AI can get a detail wrong even when the rest sounds convincing. Hally checks the answer against the evidence, points out what lines up, and flags what needs a closer look.</p><div className="behind-intro-tags"><span>Evidence first</span><span>Claims checked</span><span>Clear reasons</span></div></div>
     <div className="behind-grid">
       <article className="behind-card"><span>01</span><h3>Find the receipts</h3><p>Hally uses the source you choose: a website search, a text document, or evidence you paste in.</p></article>
       <article className="behind-card"><span>02</span><h3>Break it into claims</h3><p>Instead of treating a whole answer as one big fact, it looks at the individual things the answer says.</p></article>
