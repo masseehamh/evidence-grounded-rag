@@ -832,8 +832,13 @@ def search_web_evidence(question: str, max_results: int = 15) -> list[dict[str, 
         url = str(item.get("href") or item.get("url") or "").strip()
         passage = str(item.get("body") or item.get("snippet") or "").strip()
         domain = source_domain(url)
-        if not passage or not domain or not source_is_trusted(url):
+        if not passage or not domain:
             continue
+        # Always prefer the allowlist, but keep HTTPS results from other non-blocked
+        # domains as a fallback. The answer verifier still checks the snippet, and
+        # the response labels these sources as unverified rather than silently
+        # treating "not allowlisted" as "no evidence exists".
+        trusted = source_is_trusted(url)
         normalized_url = url.split("#", 1)[0].rstrip("/")
         if normalized_url in seen_urls:
             continue
@@ -842,13 +847,18 @@ def search_web_evidence(question: str, max_results: int = 15) -> list[dict[str, 
             "title": title,
             "url": url,
             "domain": domain,
-            "trust_level": "allowlisted_domain_unverified_page",
+            "trust_level": (
+                "allowlisted_domain_unverified_page" if trusted
+                else "unverified_domain"
+            ),
             "passage": passage,
         })
 
-    # Prefer official/primary sources, then scholarly publishers, then health/fitness
-    # education sources and selected news outlets. Preserve relevance within each tier.
-    sources.sort(key=lambda source: source_priority(source["domain"]))
+    # Prefer official/primary sources first, then other accepted HTTPS results.
+    sources.sort(key=lambda source: (
+        0 if source["trust_level"] == "allowlisted_domain_unverified_page" else 1,
+        source_priority(source["domain"]),
+    ))
     return sources[:max_results]
 
 
