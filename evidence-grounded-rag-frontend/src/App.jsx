@@ -148,7 +148,7 @@ function App() {
       <aside className="sidebar" id="app-sidebar" aria-label="Workspace navigation">
         <button className="brand" onClick={() => navigate("home")} aria-label="Go to dashboard">
           <span className="brand-mark">V</span>
-          <span><strong>Verity RAG</strong><small>Evidence lab</small></span>
+          <span><strong>Hally</strong><small>Evidence lab</small></span>
         </button>
         <div className="nav-label">WORKSPACE</div>
         <nav className="side-nav" aria-label="Main navigation">
@@ -178,12 +178,12 @@ function App() {
           {page === "ask" && (
             <section className="page-section">
               <div className="page-heading">
-                <div><div className="eyebrow">LET’S CHECK SOMETHING</div><h1>Ask away.</h1><p>Choose where to look, type your question, and we’ll compare the answer with the evidence. No jargon quiz required.</p></div>
+                <div><div className="eyebrow">LET’S CHECK SOMETHING</div><h1>Ask away.</h1><p>Got a claim? Let’s see if the evidence backs it up.</p></div>
                 
               </div>
               <div className="mode-grid">
-                <ModeCard active={mode === "web"} icon="⌕" title="Website search" desc="Search approved web sources and verify the answer against retrieved evidence." onClick={() => selectMode("web")} />
-                <ModeCard active={mode === "document"} icon="⇧" title="Upload document" desc="Use a document you have permission to share." onClick={() => selectMode("document")} />
+                <ModeCard active={mode === "web"} icon="⌕" title="Website search" desc="Find an answer online and check it against the sources we find." onClick={() => selectMode("web")} />
+                <ModeCard active={mode === "document"} icon="⇧" title="Upload document" desc="Ask a question about a text file." onClick={() => selectMode("document")} />
               </div>
               <div className="advanced-evidence">
                 <button type="button" className="advanced-toggle" aria-expanded={showAdvanced} onClick={() => {
@@ -196,23 +196,23 @@ function App() {
                   }
                 }}>
                   <span>{showAdvanced ? "−" : "+"}</span> {showAdvanced ? "Hide manual evidence" : "Use specific evidence text"}
-                  <small>Paste an exact source excerpt to keep verification grounded in that text</small>
+                  <small>Got a quote or paragraph? Check it right here</small>
                 </button>
-                {showAdvanced && <ModeCard active={mode === "manual"} icon="≡" title="Manual evidence" desc="Paste an exact excerpt and verify only against that text." onClick={() => selectMode("manual")} />}
+                {showAdvanced && <ModeCard active={mode === "manual"} icon="≡" title="Manual evidence" desc="Check a claim against text you paste here." onClick={() => selectMode("manual")} />}
               </div>
               <form className="question-form panel" onSubmit={handleSubmit}>
-                <div className="form-title"><span className="step-number">01</span><div><h2>What are you curious about?</h2><p>Ask a question or paste a claim you want to double-check. The more specific, the easier it is to check.</p></div></div>
+                <div className="form-title"><span className="step-number">01</span><div><h2>What’s the claim?</h2><p>Drop your question below. We’ll do a quick reality check.</p></div></div>
                 <label htmlFor="question">Question</label>
-                <textarea id="question" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask a factual question or enter a claim to check…" rows={3} /><div className="question-field-actions"><button type="button" className="button button-ghost" onClick={clearForm}>↺ Clear</button></div>
+                <textarea id="question" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="What did the AI say? Let’s check it…" rows={3} /><div className="question-field-actions"><button type="button" className="button button-ghost" onClick={clearForm}>↺ Clear</button></div>
                 {mode === "manual" && <>
                   <div className="field-row"><label htmlFor="evidence">Evidence text</label><span className="field-hint">Paste excerpts, notes, or source text</span></div>
-                  <textarea id="evidence" value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Paste the relevant source passage. Keep surrounding context needed to interpret it." rows={7} />
+                  <textarea id="evidence" value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Paste the text you want Hally to check…" rows={7} />
                 </>}
                 {mode === "document" && <div className="upload-box">
                   <div className="upload-symbol">⇧</div><div><strong>{file ? file.name : "Choose a .txt document"}</strong><p>Plain-text .txt file, up to 2 MB. Upload only material you are authorized to share; ask a focused question that the file can answer.</p><label className="button button-ghost file-button" htmlFor="document-file">Browse files</label><input id="document-file" type="file" accept=".txt,text/plain" onChange={handleFileChange} /></div>
                   {documentId && <span className="upload-ready"><span aria-hidden="true">✓</span> Uploaded — ready for questions</span>}
                 </div>}
-                <div className="compact-guidance general-guidance"><strong>A quick heads-up:</strong> evidence can back a claim, disagree with it, or simply not say enough. “Not enough evidence” doesn’t mean the claim is false — it means we need more to go on.</div>
+                
                 {error && <div className="error-message" role="alert"><strong>Could not process request</strong><span>{error}</span></div>}
                 <div className="form-footer"><span className="privacy-note">⌑ Your input is sent only to the configured backend.</span><button className="button button-primary" type="submit" disabled={busy}>{busy ? <><span className="spinner" /> {uploading ? "Uploading document…" : "Processing…"}</> : <>Run verification <span>→</span></>}</button></div>
               </form>
@@ -220,7 +220,7 @@ function App() {
           )}
           {page === "results" && result && <ResultsPage result={result} usedDemo={usedDemo} onAskAgain={() => navigate(returnPage)} backLabel="← Back to question" />}{page === "results" && !result && <section className="page-section"><div className="empty-state panel results-empty"><h2>Ask a question first</h2><p>Your verification report will appear here after you run a question.</p><button className="button button-primary" onClick={() => navigate("ask")}>Start a question <span>→</span></button></div></section>}
         </div>
-        <footer className="app-footer"><span>Verity RAG <span className="footer-dot">·</span> Evidence-based answer verification</span><span>{isApiConfigured ? `API: ${API_BASE_URL}` : "API not configured"}</span></footer>
+        <footer className="app-footer"><span>Hally <span className="footer-dot">·</span> Evidence-based answer verification</span><span>{isApiConfigured ? `API: ${API_BASE_URL}` : "API not configured"}</span></footer>
       </main>
     </div>
   );
@@ -241,8 +241,8 @@ function HomePage({ onStart, onEvaluation }) {
   ];
   return <section className="home-page">
     <div className="hero">
-      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> EVIDENCE-BASED RAG</div><h1>Hallucination detection<br /><span>&amp; correction.</span></h1><p className="hero-description">AI can sound sure of itself and still get things wrong. Verity helps you check an answer against evidence, spot what holds up, and see what needs a second look.</p><p className="human-intro">Think of it as a friendly fact-checking sidekick — not a magic truth machine. Bring a question, bring some evidence, and let’s see what it actually says.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={() => document.getElementById("workflow-details")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Explore the workflow <span>↓</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div><div className="home-quick-links"><button onClick={onEvaluation}>Run a contradiction test <span>→</span></button><span>Use a controlled input to inspect the verifier, not a prewritten sample result.</span></div></div>
-      <div className="hero-visual" aria-label="Illustration of evidence checking">
+      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> SAY HI TO HALLY</div><h1 className="hero-title"><span className="type-line">{Array.from("Hallucination detection").map((letter, i) => <span className="type-letter" key={`a-${i}`} style={{ "--letter-index": i }}>{letter === " " ? "\u00a0" : letter}</span>)}</span><br /><span className="type-line accent-line">{Array.from("& correction.").map((letter, i) => <span className="type-letter" key={`b-${i}`} style={{ "--letter-index": i + 23 }}>{letter === " " ? "\u00a0" : letter}</span>)}</span></h1><p className="hero-pun">In AI, not humans. (Pun very much intended.)</p><p className="hero-description">AI can make things up with a straight face. Hally helps you catch that, check the receipts, and see what actually adds up.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={() => document.getElementById("workflow-details")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Explore the workflow <span>↓</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div><div className="home-quick-links"><button onClick={onEvaluation}>Run a contradiction test <span>→</span></button><span>Use a controlled input to inspect the verifier, not a prewritten sample result.</span></div></div>
+      <div className="hero-visual" aria-label="Animated illustration of Hally checking an AI answer"><div className="hallucination-orbit" aria-hidden="true"><span className="orbit-ring ring-one"></span><span className="orbit-ring ring-two"></span><span className="orbit-spark">?</span><span className="orbit-check">✓</span><span className="orbit-dot"></span></div>
         <div className="visual-top"><span className="visual-dot" /><span className="visual-dot" /><span className="visual-dot" /><span className="visual-title">HOW VERIFICATION WORKS</span><span className="visual-live">WORKFLOW EXAMPLE</span></div>
         <div className="pipeline">
           <div className="pipeline-node"><span className="pipeline-icon">⌕</span><div><strong>Evidence retrieved</strong><small>Relevant passages from the selected source</small></div></div>
@@ -259,7 +259,7 @@ function HomePage({ onStart, onEvaluation }) {
     <div id="workflow-details" className="section-intro"><div><div className="eyebrow">THE WORKFLOW</div><h2>Four small steps. No mystery.</h2></div><p>Find the evidence, draft an answer, check the claims, then tidy up anything the evidence can’t support. Tap a step to explore it.</p></div>
     <div className="steps-grid">{steps.map(([number, title, desc]) => <details className="step-card step-interactive" key={number}><summary><span className="step-number">{number}</span><span className="step-summary-copy"><strong>{title}</strong><small>Tap to see what happens</small></span><span className="step-expand" aria-hidden="true">+</span></summary><p>{desc}</p></details>)}</div>
     <section className="platform-section">
-      <div className="section-intro"><div><div className="eyebrow">ABOUT VERITY RAG</div><h2>More than a fluent answer.</h2></div><p>Verity RAG helps you ask, “Wait — where did that come from?” It puts the answer next to the evidence, so you can inspect it, challenge it, and make up your own mind.</p></div>
+      <div className="section-intro"><div><div className="eyebrow">ABOUT VERITY RAG</div><h2>More than a fluent answer.</h2></div><p>Hally helps you ask, “Wait — where did that come from?” It puts the answer next to the evidence, so you can inspect it, challenge it, and make up your own mind.</p></div>
       <div className="platform-grid">
         <article className="platform-card"><span className="platform-icon">⌕</span><h3>Two evidence paths</h3><p>Use your own text or upload a plain-text document as evidence.</p></article>
         <article className="platform-card"><span className="platform-icon">✓</span><h3>Claim-level checks</h3><p>Claims are labelled as supported, contradicted, or not supported by enough evidence.</p></article>
@@ -280,7 +280,7 @@ function EvaluationPage({ onRunTest }) {
     { id: "insufficient", label: "Insufficient evidence", intent: "Check that the system avoids filling in a missing fact.", question: "Verify this claim: The Eiffel Tower opened to the public in 1900.", evidence: "The Eiffel Tower was completed in 1889.", expected: "The provided passage gives a completion year, not a public opening date." }
   ];
   return <section className="page-section evaluation-page">
-    <div className="page-heading"><div><div className="eyebrow">TRY A LITTLE EXPERIMENT</div><h1>Let’s put it to the test.</h1><p>Pick a mini challenge, run it through the connected backend, and see what the evidence supports. These are real test inputs, not prewritten success stories.</p></div></div>
+    <div className="page-heading"><div><div className="eyebrow">TRY A LITTLE EXPERIMENT</div><h1>Let’s test Hally.</h1><p>Pick a mini challenge and see if Hally catches what’s off. The results are real, not staged.</p></div></div>
     <div className="evaluation-notice"><strong>How to use these tests</strong><p>Select a case to load its question and evidence into the workspace. Then run verification and compare the actual report with the test intent. The model may fail a case; that is useful evaluation data, not a result to hide.</p></div>
     <div className="evaluation-grid">{tests.map((test, index) => <article className="evaluation-card panel" key={test.id}><div className="evaluation-card-top"><span className="step-number">0{index+1}</span><span className="evaluation-kind">CONTROLLED INPUT</span></div><h2>{test.label}</h2><p>{test.intent}</p><div className="evaluation-field"><span>QUESTION</span><p>{test.question}</p></div><div className="evaluation-field"><span>EVIDENCE</span><p>{test.evidence}</p></div><div className="evaluation-expectation"><strong>Test intent</strong><p>{test.expected}</p></div><button className="button button-primary" onClick={() => onRunTest(test)}>Load test in workspace <span>→</span></button></article>)}</div>
   </section>;
@@ -296,7 +296,7 @@ function ResultsPage({ result, usedDemo, onAskAgain, backLabel = "← Back to qu
     /not sufficient|no answer was generated/i.test(result.corrected_answer || "") ||
     /NOT[ _]ENOUGH[ _]EVIDENCE/i.test(result.verification_status || "");
   return <section className="page-section results-page">
-    <div className="page-heading"><div><div className="eyebrow">YOUR FACT-CHECK REPORT</div><h1>Here’s what we found.</h1><p>Start with the verdict, then check the evidence. If something feels off, the details are here for you to inspect.</p></div><button className="button button-ghost" onClick={onAskAgain}>{backLabel}</button></div>
+    <div className="page-heading"><div><div className="eyebrow">YOUR FACT-CHECK REPORT</div><h1>Here’s the tea.</h1><p>Here’s what checked out, what didn’t, and what the evidence actually says.</p></div><button className="button button-ghost" onClick={onAskAgain}>{backLabel}</button></div>
     {result.demo_mode && <div className="demo-banner"><span>ⓘ</span><div><strong>Controlled correction demonstration{result.demo_scenario?.title ? `: ${result.demo_scenario.title}` : "."}</strong><p>{result.demo_scenario?.description ? `${result.demo_scenario.description} ` : ""}{result.demo_notice || "The initial answer is deliberately seeded as incorrect; the backend then runs verification, correction, and re-verification."}</p>{result.demo_scenario?.expected_behavior && <p><strong>What this scenario demonstrates:</strong> {result.demo_scenario.expected_behavior}</p>}</div></div>}
     {usedDemo && <div className="demo-banner"><span>ⓘ</span><div><strong>Illustrative sample result — not generated by your AI model.</strong><p>This example only demonstrates how the interface presents verification results.</p></div></div>}
     <div className="result-summary panel"><div><div className="summary-label">OVERALL VERIFICATION</div><h2>{String(result.verification_status || "STATUS UNAVAILABLE").replaceAll("_", " ")}</h2><p>{result.message || `${result.claims.length} claims reviewed in this response`}</p></div><div className="summary-stats"><div><strong className="stat-good">{supported.toString().padStart(2, "0")}</strong><span>Supported</span></div><div><strong className="stat-bad">{contradicted.toString().padStart(2, "0")}</strong><span>Contradicted</span></div><div><strong className="stat-warn">{uncertain.toString().padStart(2, "0")}</strong><span>Uncertain</span></div></div></div>
