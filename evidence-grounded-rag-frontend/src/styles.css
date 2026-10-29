@@ -215,3 +215,30 @@ button, input, textarea, select { font-size: inherit; }
 .question-form textarea { display: block; width: 100%; min-height: 118px; }
 .sidebar-foot { overflow-wrap: anywhere; letter-spacing: .55px; line-height: 1.8; }
 .sidebar-foot span { font-size: 9px; letter-spacing: .2px; }
+
+
+/* Homepage dashboard and controlled evaluation workspace */
+.home-quick-links { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 23px; padding-top: 16px; border-top: 1px solid #dfe5dc; }
+.home-quick-links button { border: 0; background: transparent; padding: 0; color: #315b45; font-size: 14px; font-weight: 650; cursor: pointer; }
+.home-quick-links button span { margin-left: 7px; }
+.home-quick-links > span { color: #66756a; font-size: 12px; line-height: 1.6; }
+.home-bottom-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.evaluation-page .page-heading { margin-bottom: 20px; }
+.evaluation-notice { margin-bottom: 22px; padding: 18px 20px; border: 1px solid #dfe5dc; border-left: 3px solid #47775e; border-radius: 7px; background: #f0f3ec; }
+.evaluation-notice strong { color: #2d4838; font-size: 14px; }
+.evaluation-notice p { color: #58685d; font-size: 13px; line-height: 1.75; margin: 7px 0 0; }
+.evaluation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; align-items: stretch; }
+.evaluation-card { display: flex; flex-direction: column; align-items: stretch; padding: 21px; border: 1px solid #dfe5dc; border-radius: 8px; background: #fbfcf8; }
+.evaluation-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.evaluation-kind { color: #64756a; font-size: 10px; letter-spacing: .8px; font-weight: 650; }
+.evaluation-card h2 { margin: 18px 0 7px; color: #293d32; font-size: 19px; letter-spacing: -.3px; }
+.evaluation-card > p { margin: 0 0 17px; min-height: 44px; color: #637169; font-size: 13px; line-height: 1.65; }
+.evaluation-field { margin-top: 11px; padding: 12px; border: 1px solid #e0e6dd; border-radius: 6px; background: #fff; }
+.evaluation-field > span { color: #6b7b6e; font-size: 10px; letter-spacing: .8px; font-weight: 700; }
+.evaluation-field p { margin: 7px 0 0; color: #344a3c; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.evaluation-expectation { margin: 14px 0 19px; padding: 0 0 0 11px; border-left: 2px solid #b8c9b7; }
+.evaluation-expectation strong { font-size: 12px; color: #425e4b; }
+.evaluation-expectation p { margin: 5px 0 0; font-size: 12px; line-height: 1.7; color: #647168; }
+.evaluation-card .button { margin-top: auto; align-self: flex-start; }
+@media (max-width: 1100px) { .evaluation-grid { grid-template-columns: 1fr; } .evaluation-card > p { min-height: 0; } }
+@media (max-width: 650px) { .home-bottom { align-items: flex-start; flex-direction: column; } .home-bottom-actions { width: 100%; } .home-quick-links { align-items: flex-start; flex-direction: column; } }
