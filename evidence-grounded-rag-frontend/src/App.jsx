@@ -15,6 +15,13 @@ function StatusPill({ status }) {
   return <span className={`status-pill ${cls}`}><span className="status-dot" />{label}</span>;
 }
 
+function looksLikeCasualStatement(text) {
+  const value = String(text || "").trim().replace(/\s+/g, " ").toLowerCase();
+  if (!value || value.includes("?")) return false;
+  if (/^(verify|fact[- ]?check|check|assess|evaluate)\b/.test(value)) return false;
+  return /^(hi|hey|hello|heya|yo|sup|good morning|good afternoon|good evening|good night|thanks|thank you|thx|bye|goodbye|lol|lmao|haha|hehe|bruh|bro|dude|nice|cool|awesome|great|okay|ok|alright|wow|omg|oops|yikes|i am|i'm|im|i feel|i think|i guess|i like|i love|i hate|i prefer|i want|i wish|i hope|i need|i miss|i enjoy|i'm feeling|im feeling|that is|that's|thats|this is|this's|it is|it's|its|my name is|call me|meet my|look at|listen|guess what|i'm just|im just|just saying|not gonna lie|ngl)\b/.test(value);
+}
+
 function App() {
   const [page, setPage] = useState("home");
   const [returnPage, setReturnPage] = useState("ask");
@@ -97,15 +104,16 @@ function App() {
       setError("Enter a question before running verification.");
       return;
     }
-    if (mode === "manual" && !evidence.trim()) {
+    const casualStatement = looksLikeCasualStatement(question);
+    if (!casualStatement && mode === "manual" && !evidence.trim()) {
       setError("Paste the evidence you want the answer checked against.");
       return;
     }
-    if (mode === "document" && !file && !documentId) {
+    if (!casualStatement && mode === "document" && !file && !documentId) {
       setError("Choose a document before asking a question.");
       return;
     }
-    if (mode === "document" && file && !documentId) {
+    if (!casualStatement && mode === "document" && file && !documentId) {
       const problem = validateUploadFile(file);
       if (problem) {
         setError(problem);
