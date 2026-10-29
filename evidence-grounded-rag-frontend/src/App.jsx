@@ -145,7 +145,7 @@ function App() {
   return (
     <div className={`app-shell${mobileNavOpen ? " mobile-nav-open" : ""}`}>
       {mobileNavOpen && <button className="drawer-backdrop" aria-label="Close navigation menu" onClick={() => setMobileNavOpen(false)} />}
-      <aside className="sidebar" id="app-sidebar">
+      <aside className="sidebar" id="app-sidebar" aria-label="Workspace navigation">
         <button className="brand" onClick={() => navigate("home")} aria-label="Go to dashboard">
           <span className="brand-mark">V</span>
           <span><strong>Verity RAG</strong><small>Evidence lab</small></span>
