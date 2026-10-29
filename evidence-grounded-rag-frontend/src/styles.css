@@ -1195,3 +1195,75 @@ body { background:radial-gradient(ellipse at 80% 0%,#eee7f0 0,transparent 28rem)
 @media(prefers-reduced-motion:reduce) {
   .hero h1.hero-title .type-line .type-letter { opacity:1 !important; animation:none !important; }
 }
+
+
+/* Mobile audit fix: restore all sidebar copy inside the opened phone drawer. */
+@media(max-width:800px) {
+  .mobile-nav-open .sidebar {
+    width:min(300px,85vw) !important;
+    padding:22px 15px 18px !important;
+    align-items:stretch !important;
+  }
+  .mobile-nav-open .sidebar .brand {
+    padding:0 10px 30px !important;
+    justify-content:flex-start !important;
+  }
+  .mobile-nav-open .sidebar .brand>span:last-child {
+    display:block !important;
+    font-size:initial !important;
+  }
+  .mobile-nav-open .sidebar .brand strong { font-size:15px !important; }
+  .mobile-nav-open .sidebar .brand small { display:block !important; font-size:11px !important; }
+  .mobile-nav-open .sidebar .nav-label {
+    display:block !important;
+    font-size:9px !important;
+    padding:0 12px 12px !important;
+  }
+  .mobile-nav-open .sidebar .nav-item,
+  .mobile-nav-open .sidebar .nav-item:not(.active),
+  .mobile-nav-open .sidebar .nav-item.active {
+    display:flex !important;
+    justify-content:flex-start !important;
+    gap:12px !important;
+    padding:12px 13px !important;
+    font-size:12px !important;
+    text-align:left !important;
+  }
+  .mobile-nav-open .sidebar .nav-icon { flex:0 0 17px; font-size:17px !important; }
+  .mobile-nav-open .sidebar-note {
+    display:flex !important;
+    justify-content:flex-start !important;
+    align-items:flex-start !important;
+    padding:14px 12px !important;
+    margin:0 3px 24px !important;
+    gap:10px !important;
+  }
+  .mobile-nav-open .sidebar-note>div {
+    display:block !important;
+    min-width:0;
+  }
+  .mobile-nav-open .sidebar-note strong {
+    display:block !important;
+    font-size:12px !important;
+    color:#fff !important;
+  }
+  .mobile-nav-open .sidebar-note p {
+    display:block !important;
+    font-size:11px !important;
+    line-height:1.6 !important;
+    color:#e4deed !important;
+    margin-top:5px !important;
+  }
+  .mobile-nav-open .sidebar-foot {
+    display:block !important;
+    padding:0 12px !important;
+    font-size:9px !important;
+    line-height:1.8 !important;
+    color:#e0d9e8 !important;
+  }
+  .mobile-nav-open .sidebar-foot span {
+    display:block !important;
+    font-size:8px !important;
+    color:#bdb3cc !important;
+  }
+}
