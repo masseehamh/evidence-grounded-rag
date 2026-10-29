@@ -15,7 +15,7 @@ function App() {
   const [page, setPage] = useState("home");
   const [returnPage, setReturnPage] = useState("ask");
   const [mode, setMode] = useState("manual");
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(true);
   const [question, setQuestion] = useState("");
   const [evidence, setEvidence] = useState("");
   const [file, setFile] = useState(null);
@@ -177,9 +177,17 @@ function App() {
                 <ModeCard active={mode === "document"} icon="⇧" title="Upload document" desc="Use a document you have permission to share." onClick={() => selectMode("document")} />
               </div>
               <div className="advanced-evidence">
-                <button type="button" className="advanced-toggle" aria-expanded={showAdvanced} onClick={() => { setShowAdvanced(!showAdvanced); if (!showAdvanced) selectMode("manual"); else if (mode === "manual") selectMode("document"); }}>
-                  <span>{showAdvanced ? "−" : "+"}</span> Advanced: use specific evidence text
-                  <small>For controlled tests or when you already have a source excerpt</small>
+                <button type="button" className="advanced-toggle" aria-expanded={showAdvanced} onClick={() => {
+                  if (mode === "manual" && showAdvanced) {
+                    selectMode("document");
+                    setShowAdvanced(false);
+                  } else {
+                    setShowAdvanced(!showAdvanced);
+                    if (!showAdvanced) selectMode("manual");
+                  }
+                }}>
+                  <span>{showAdvanced ? "−" : "+"}</span> {showAdvanced ? "Hide manual evidence" : "Use specific evidence text"}
+                  <small>Paste an exact source excerpt to keep verification grounded in that text</small>
                 </button>
                 {showAdvanced && <ModeCard active={mode === "manual"} icon="≡" title="Manual evidence" desc="Paste an exact excerpt and verify only against that text." onClick={() => selectMode("manual")} />}
               </div>
