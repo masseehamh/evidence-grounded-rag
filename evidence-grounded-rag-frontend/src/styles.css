@@ -714,3 +714,34 @@ body { background:radial-gradient(ellipse at 80% 0%,#eee7f0 0,transparent 28rem)
   .hallucination-orbit { width:88px; height:88px; top:4%; right:4%; }
   .orbit-spark,.orbit-check { width:27px; height:27px; font-size:15px; }
 }
+
+
+/* Hally identity + Curious Corner workspace. */
+.brand-mark { font-weight:900; font-size:19px; letter-spacing:-1px; }
+.breadcrumb { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.breadcrumb-link { border:0; padding:0; background:transparent; color:inherit; font:inherit; cursor:pointer; font-weight:650; }
+.breadcrumb-link:hover { color:#675574; text-decoration:underline; text-underline-offset:3px; }
+.breadcrumb-link:focus-visible { outline:2px solid #82738e; outline-offset:3px; border-radius:3px; }
+.behind-page { animation:behind-enter .32s ease both; }
+@keyframes behind-enter { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.behind-intro { display:flex; gap:18px; align-items:flex-start; padding:clamp(20px,3vw,32px); margin:24px 0; background:#f0ecf2; border-color:#e2d8e8; }
+.behind-emoji { display:grid; place-items:center; flex:0 0 52px; width:52px; height:52px; background:#fff; border-radius:16px; font-size:26px; }
+.behind-intro h2 { margin:0 0 8px; font-size:clamp(19px,2vw,25px); letter-spacing:-.5px; }
+.behind-intro p { margin:0; color:#403b47; line-height:1.75; max-width:720px; }
+.behind-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.behind-card { position:relative; min-height:175px; padding:24px; background:#fdfbf8; border:1px solid #e2dce5; border-radius:18px; box-shadow:0 5px 20px #29263208; transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease; }
+.behind-card:hover { transform:translateY(-3px); border-color:#b3a4bd; box-shadow:0 10px 24px #29263210; }
+.behind-card > span { display:grid; place-items:center; width:34px; height:34px; border-radius:11px; background:#dfe7d8; color:#394b35; font-weight:800; font-size:12px; margin-bottom:18px; }
+.behind-card h3 { margin:0 0 8px; font-size:18px; letter-spacing:-.3px; }
+.behind-card p { margin:0; color:#514b57; line-height:1.7; font-size:14px; }
+.behind-note { margin-top:20px; padding:18px 20px; border-left:3px solid #82738e; background:#f1edf2; border-radius:0 12px 12px 0; }
+.behind-note strong { font-size:14px; }
+.behind-note p { margin:5px 0 0; color:#514b57; line-height:1.65; font-size:13px; }
+.behind-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:24px; }
+@media(max-width:640px) {
+ .behind-grid { grid-template-columns:minmax(0,1fr); }
+ .behind-card { min-height:0; padding:20px; }
+ .behind-intro { gap:12px; }
+ .behind-emoji { flex-basis:42px; width:42px; height:42px; font-size:22px; }
+ .breadcrumb { gap:6px; font-size:12px; }
+}
