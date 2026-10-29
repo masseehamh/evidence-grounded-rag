@@ -537,3 +537,65 @@ body {
 @media (prefers-reduced-motion:reduce) {
   *,*::before,*::after { transition:none !important; transform:none !important; }
 }
+
+
+/* Friendly guide layer: human copy, expandable steps, and welcoming micro-interactions. */
+.human-intro {
+  max-width: 460px;
+  margin: 12px 0 0;
+  padding: 12px 15px;
+  border-left: 4px solid #d8ff3e;
+  border-radius: 0 12px 12px 0;
+  background: #fffdf8;
+  color: #373737;
+  font-size: 13px;
+  line-height: 1.75;
+}
+.step-interactive { padding: 0; overflow: hidden; }
+.step-interactive > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 20px;
+  cursor: pointer;
+  min-height: 100px;
+}
+.step-interactive > summary::-webkit-details-marker { display: none; }
+.step-summary-copy { display: flex; flex: 1; flex-direction: column; gap: 7px; }
+.step-summary-copy strong { font-size: 15px; }
+.step-summary-copy small { color: #696969; font-size: 11px; }
+.step-expand {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid #191919;
+  border-radius: 50%;
+  font-size: 18px;
+  transition: transform .2s ease, background .2s ease;
+}
+.step-interactive[open] .step-expand { transform: rotate(45deg); background: #d8ff3e; }
+.step-interactive > p {
+  margin: 0;
+  padding: 0 20px 20px 58px;
+  color: #595959;
+  font-size: 13px;
+  line-height: 1.75;
+  animation: guide-reveal .18s ease-out;
+}
+.step-interactive[open] { background: #fff; }
+.step-interactive:focus-within { outline: 3px solid #eaf0ff; outline-offset: 2px; }
+@keyframes guide-reveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.hero-actions .button, .home-bottom-actions .button { transition: transform .18s ease, box-shadow .18s ease; }
+.home-quick-links { line-height: 1.7; }
+@media (max-width: 540px) {
+  .human-intro { font-size: 12px; }
+  .step-interactive > summary { padding: 16px; min-height: 84px; }
+  .step-interactive > p { padding: 0 16px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .step-interactive > p { animation: none; }
+  .step-expand { transition: none; }
+}
