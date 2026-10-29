@@ -147,7 +147,7 @@ function App() {
       {mobileNavOpen && <button className="drawer-backdrop" aria-label="Close navigation menu" onClick={() => setMobileNavOpen(false)} />}
       <aside className="sidebar" id="app-sidebar" aria-label="Workspace navigation">
         <button className="brand" onClick={() => navigate("home")} aria-label="Go to dashboard">
-          <span className="brand-mark">V</span>
+          <span className="brand-mark">H</span>
           <span><strong>Hally</strong><small>Evidence lab</small></span>
         </button>
         <div className="nav-label">WORKSPACE</div>
@@ -156,6 +156,7 @@ function App() {
           <button className={page === "ask" ? "nav-item active" : "nav-item"} onClick={() => navigate("ask")}><span className="nav-icon">＋</span> Ask a question</button>
           <button className={page === "results" ? "nav-item active" : "nav-item"} onClick={() => navigate("results")} aria-label={result ? "Open verification results" : "Ask a question first to open verification results"}><span className="nav-icon">☷</span> Verification results{!result && <small className="nav-item-hint">Ask a question first</small>}</button>
           <button className={page === "evaluation" ? "nav-item active" : "nav-item"} onClick={() => navigate("evaluation")}><span className="nav-icon">⌁</span> Evaluation tests</button>
+          <button className={page === "behind" ? "nav-item active" : "nav-item"} onClick={() => navigate("behind")}><span className="nav-icon">✳</span> Curious? Behind the scenes</button>
         </nav>
         <div className="sidebar-bottom">
           <div className="sidebar-note"><span className="note-icon">✳</span><div><strong>Evidence first</strong><p>Every claim should be traceable to a source.</p></div></div>
@@ -165,7 +166,7 @@ function App() {
 
       <main className="main-area">
         <header className="topbar">
-          <div className="breadcrumb"><button className="menu-button" type="button" aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"} aria-controls="app-sidebar" aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen(!mobileNavOpen)}><span></span><span></span><span></span></button>Workspace <span>/</span> {page === "home" ? "Overview" : page === "ask" ? "Ask a question" : page === "evaluation" ? "Evaluation tests" : "Verification results"}</div>
+          <div className="breadcrumb"><button className="menu-button" type="button" aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"} aria-controls="app-sidebar" aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen(!mobileNavOpen)}><span></span><span></span><span></span></button><button className="breadcrumb-link" onClick={() => navigate("home")}>Workspace</button> <span>/</span> <button className="breadcrumb-link" onClick={() => navigate("home")}>Overview</button>{page !== "home" && <><span>/</span> <span>{page === "ask" ? "Ask a question" : page === "evaluation" ? "Evaluation tests" : page === "behind" ? "Behind the scenes" : "Verification results"}</span></>}</div>
           <div className="topbar-right">
             <span className={`connection ${backendStatus}`}><span />{backendStatus === "online" ? "Backend connected" : backendStatus === "checking" ? "Checking backend" : backendStatus === "offline" ? "Backend unavailable" : "Demo mode"}</span>
             <span className="avatar">ER</span>
@@ -173,7 +174,8 @@ function App() {
         </header>
 
         <div className="content">
-          {page === "home" && <HomePage onStart={() => setPage("ask")} onEvaluation={() => setPage("evaluation")} />}
+          {page === "home" && <HomePage onStart={() => setPage("ask")} onEvaluation={() => setPage("evaluation")} onBehind={() => setPage("behind")} />}
+          {page === "behind" && <BehindScenesPage onStart={() => navigate("ask")} onEvaluation={() => navigate("evaluation")} />}
           {page === "evaluation" && <EvaluationPage onRunTest={(test) => { setMode("manual"); setShowAdvanced(true); setQuestion(test.question); setEvidence(test.evidence); setError(""); setResult(null); setUsedDemo(false); setPage("ask"); }} />}
           {page === "ask" && (
             <section className="page-section">
@@ -232,7 +234,7 @@ function ModeCard({ active, icon, title, desc, onClick, disabled }) {
   </button>;
 }
 
-function HomePage({ onStart, onEvaluation }) {
+function HomePage({ onStart, onEvaluation, onBehind }) {
   const steps = [
     ["01", "Find the receipts", "Look for the bits that can back up an answer."],
     ["02", "Get an answer", "Put the useful info together into a reply."],
@@ -241,7 +243,7 @@ function HomePage({ onStart, onEvaluation }) {
   ];
   return <section className="home-page">
     <div className="hero">
-      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> SAY HI TO HALLY</div><h1 className="hero-title"><span className="type-line">{Array.from("Hallucination detection").map((letter, i) => <span className="type-letter" key={`a-${i}`} style={{ "--letter-index": i }}>{letter === " " ? "\u00a0" : letter}</span>)}</span><br /><span className="type-line accent-line">{Array.from("& correction.").map((letter, i) => <span className="type-letter" key={`b-${i}`} style={{ "--letter-index": i + 23 }}>{letter === " " ? "\u00a0" : letter}</span>)}</span></h1><p className="hero-pun">In AI, not humans. (Pun very much intended.)</p><p className="hero-description">AI can make things up with a straight face. Hally helps you catch that, check the receipts, and see what actually adds up.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={() => document.getElementById("workflow-details")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Explore the workflow <span>↓</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div><div className="home-quick-links"><button onClick={onEvaluation}>Run a contradiction test <span>→</span></button><span>Try a tricky claim and see what Hally spots.</span></div></div>
+      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> SAY HI TO HALLY</div><h1 className="hero-title"><span className="type-line">{Array.from("Hallucination detection").map((letter, i) => <span className="type-letter" key={`a-${i}`} style={{ "--letter-index": i }}>{letter === " " ? "\u00a0" : letter}</span>)}</span><br /><span className="type-line accent-line">{Array.from("& correction.").map((letter, i) => <span className="type-letter" key={`b-${i}`} style={{ "--letter-index": i + 23 }}>{letter === " " ? "\u00a0" : letter}</span>)}</span></h1><p className="hero-pun">In AI, not humans.</p><p className="hero-description">AI can make things up with a straight face. Hally helps you catch that, check the receipts, and see what actually adds up.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={onBehind}>Curious how it works? <span>→</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div><div className="home-quick-links"><button onClick={onEvaluation}>Run a contradiction test <span>→</span></button><span>Try a tricky claim and see what Hally spots.</span></div></div>
       <div className="hero-visual" aria-label="Animated illustration of Hally checking an AI answer"><div className="hallucination-orbit" aria-hidden="true"><span className="orbit-ring ring-one"></span><span className="orbit-ring ring-two"></span><span className="orbit-spark">?</span><span className="orbit-check">✓</span><span className="orbit-dot"></span></div>
         <div className="visual-top"><span className="visual-dot" /><span className="visual-dot" /><span className="visual-dot" /><span className="visual-title">HOW VERIFICATION WORKS</span><span className="visual-live">WORKFLOW EXAMPLE</span></div>
         <div className="pipeline">
@@ -268,10 +270,28 @@ function HomePage({ onStart, onEvaluation }) {
       </div>
       <p className="platform-disclaimer">Research prototype, not a guarantee of truth. Search snippets can be incomplete, models can make mistakes, and important claims should be checked against the original sources.</p>
     </section>
-    <div className="home-bottom"><div><span className="bottom-icon">✳</span><div><strong>Designed for transparency</strong><p>See supported, contradicted, and uncertain claims separately.</p></div></div><div className="home-bottom-actions"><button className="button button-ghost" onClick={onEvaluation}>Test verification</button><button className="button button-primary" onClick={onStart}>New verification <span>→</span></button></div></div>
+    <div className="home-bottom"><div><span className="bottom-icon">✳</span><div><strong>Designed for transparency</strong><p>See supported, contradicted, and uncertain claims separately.</p></div></div><div className="home-bottom-actions"><button className="button button-ghost" onClick={onBehind}>Curious about the behind-the-scenes?</button><button className="button button-ghost" onClick={onEvaluation}>Test verification</button><button className="button button-primary" onClick={onStart}>New verification <span>→</span></button></div></div>
   </section>;
 }
 
+
+
+function BehindScenesPage({ onStart, onEvaluation }) {
+  return <section className="page-section behind-page">
+    <div className="page-heading">
+      <div><div className="eyebrow">THE CURIOUS CORNER</div><h1>Curious about the behind-the-scenes?</h1><p>No deep tech dive needed. Here’s the vibe, step by step.</p></div>
+    </div>
+    <div className="behind-intro panel"><span className="behind-emoji">🕵️</span><div><h2>So, how does Hally catch a hallucination?</h2><p>It doesn’t just take an AI answer at face value. Hally looks at the evidence, checks the claims against it, and shows you where things line up — or don’t.</p></div></div>
+    <div className="behind-grid">
+      <article className="behind-card"><span>01</span><h3>Find the receipts</h3><p>Hally uses the source you choose: a website search, a text document, or evidence you paste in.</p></article>
+      <article className="behind-card"><span>02</span><h3>Break it into claims</h3><p>Instead of treating a whole answer as one big fact, it looks at the individual things the answer says.</p></article>
+      <article className="behind-card"><span>03</span><h3>Check what adds up</h3><p>Each claim is compared with the available evidence. It might be supported, contradicted, or still unclear.</p></article>
+      <article className="behind-card"><span>04</span><h3>Show the why</h3><p>The report helps you see the evidence behind the verdict, so you can judge it for yourself.</p></article>
+    </div>
+    <div className="behind-note"><strong>One thing to keep in mind</strong><p>Hally is a helper, not an all-knowing fact machine. If the evidence is thin or a claim really matters, check the original source too.</p></div>
+    <div className="behind-actions"><button className="button button-primary" onClick={onStart}>Okay, let’s try it <span>→</span></button><button className="button button-ghost" onClick={onEvaluation}>Try a mini test</button></div>
+  </section>;
+}
 
 function EvaluationPage({ onRunTest }) {
   const tests = [
