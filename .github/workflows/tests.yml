@@ -40,6 +40,9 @@ jobs:
       - name: Run backend test suite
         run: python -m pytest backend-tests -q
 
+      - name: Run Cloudflare backend tests
+        run: python -m pytest cloudflare-backend-tests/test_backend.py -q
+
       - name: Run research pilot evaluator tests
         run: python -m unittest discover -s research/pilot -p 'test_*.py' -v
 
