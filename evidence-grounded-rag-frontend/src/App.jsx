@@ -109,7 +109,7 @@ function App() {
     setBusy(true);
     try {
       if (!isApiConfigured) {
-        if (mode === "document") throw new Error("Document processing is unavailable in demo mode. Connect the FastAPI upload and ask endpoints.");
+        if (mode === "document" || mode === "web") throw new Error("Document upload and web search require the connected backend. Set VITE_API_BASE_URL and redeploy the frontend.");
         setResult(normalizeResult(demoResult));
         setUsedDemo(true);
         setReturnPage("ask");
