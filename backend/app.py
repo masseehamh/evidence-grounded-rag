@@ -602,7 +602,7 @@ def search_web_evidence(question: str, max_results: int = 5) -> list[dict[str, s
         # Explicitly labelled official sources and public institutions get priority.
         if "official" in title or "official website" in source["passage"].lower():
             score += 5
-        if re.search(r"https?://[^/]+\\.(gov|gov\\.[a-z.]+|edu|edu\\.[a-z.]+|int)(?:/|$)", url):
+        if re.search(r"https?://[^/]+\.(gov|gov\.[a-z.]+|edu|edu\.[a-z.]+|int)(?:/|$)", url):
             score += 4
         if any(marker in url for marker in (".gov/", ".gov.", ".edu/", ".int/")):
             score += 3
