@@ -142,8 +142,8 @@ export async function askBackend(payload) {
 // Builds the JSON body for POST /api/ask. Kept here (not inside the component) so it can be tested.
 // Keep payload construction aligned with the deployed FastAPI modes.
 export function buildAskPayload({ mode, question, evidence = "", documentId = "" }) {
-  if (!["manual", "document"].includes(mode)) {
-    throw new Error(`Unsupported evidence mode "${mode}". Use manual or document.`);
+  if (!["manual", "document", "web"].includes(mode)) {
+    throw new Error(`Unsupported evidence mode "${mode}". Use manual, document, or web.`);
   }
   const payload = { question: String(question ?? "").trim(), mode };
   if (mode === "manual") payload.evidence = String(evidence ?? "").trim();
