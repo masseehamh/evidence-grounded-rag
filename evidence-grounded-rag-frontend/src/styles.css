@@ -1039,7 +1039,7 @@ body { background:radial-gradient(ellipse at 80% 0%,#eee7f0 0,transparent 28rem)
   }
   .hero-title .type-line:first-child { letter-spacing:-1.15px !important; }
   .hero-title .accent-line { display:inline !important; white-space:normal !important; }
-  .hero-title .type-letter { animation:none !important; filter:none !important; transform:none !important; }
+  .hero-title .type-letter { filter:none; }
   .hero h1 span::after { bottom:-1px !important; height:4px !important; }
 }
 @media(max-width:380px) {
@@ -1077,7 +1077,7 @@ body { background:radial-gradient(ellipse at 80% 0%,#eee7f0 0,transparent 28rem)
   opacity:1 !important;
   text-shadow:0 1px 1px #100e18;
 }
-.hero-title .type-letter { color:#fff !important; opacity:1 !important; filter:none !important; }
+.hero-title .type-letter { color:#fff !important; opacity:0; filter:none !important; }
 .hero-title .accent-line .type-letter { color:#fff !important; }
 .hero h1 span::after {
   transform:none !important;
@@ -1179,4 +1179,19 @@ body { background:radial-gradient(ellipse at 80% 0%,#eee7f0 0,transparent 28rem)
 @media(prefers-reduced-motion:reduce) {
  .animated-text .type-letter,.hero-title .type-letter { opacity:1 !important; animation:none !important; transform:none !important; }
  .behind-intro,.behind-card { animation:none !important; }
+}
+
+
+/* Ensure the main headline's individual letters actually animate on every screen size. */
+.hero h1.hero-title .type-line .type-letter {
+  display:inline-block !important;
+  opacity:0;
+  animation-name:letter-arrive !important;
+  animation-duration:.42s !important;
+  animation-timing-function:cubic-bezier(.2,.75,.2,1) !important;
+  animation-fill-mode:forwards !important;
+  animation-delay:calc(var(--letter-index) * 32ms + 120ms) !important;
+}
+@media(prefers-reduced-motion:reduce) {
+  .hero h1.hero-title .type-line .type-letter { opacity:1 !important; animation:none !important; }
 }
