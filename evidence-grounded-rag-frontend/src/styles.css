@@ -198,3 +198,20 @@ button, input, textarea, select { font-size: inherit; }
   .claim-metadata { grid-template-columns: 1fr 1fr; }
   .app-footer { padding: 14px; }
 }
+
+/* Compact helper copy belongs beside the field, not in a large instruction panel. */
+.compact-guidance {
+  margin: 10px 0 18px;
+  padding: 10px 13px;
+  border-left: 3px solid #9aaa9a;
+  background: #f0f3ec;
+  color: #58685d;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.general-guidance { margin-top: 18px; }
+.form-title { margin-bottom: 14px; }
+.question-form > label { display: block; margin-top: 10px; }
+.question-form textarea { display: block; width: 100%; min-height: 118px; }
+.sidebar-foot { overflow-wrap: anywhere; letter-spacing: .55px; line-height: 1.8; }
+.sidebar-foot span { font-size: 9px; letter-spacing: .2px; }
