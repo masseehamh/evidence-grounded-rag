@@ -152,7 +152,7 @@ function App() {
       <aside className="sidebar" id="app-sidebar" aria-label="Workspace navigation">
         <button className="brand" onClick={() => navigate("home")} aria-label="Go to dashboard">
           <span className="brand-mark">H</span>
-          <span><strong>Hally</strong><small>Your evidence sidekick</small></span>
+          <span><strong>Hally</strong><small>Evidence lab</small></span>
         </button>
         <div className="nav-label">WORKSPACE</div>
         <nav className="side-nav" aria-label="Main navigation">
@@ -175,7 +175,7 @@ function App() {
             <button className={page === "home" ? "top-nav-link active" : "top-nav-link"} onClick={() => navigate("home")}>Overview</button>
             <button className={page === "ask" ? "top-nav-link active" : "top-nav-link"} onClick={() => navigate("ask")}>Ask a question</button>
             <button className={page === "results" ? "top-nav-link active" : "top-nav-link"} onClick={() => navigate("results")}>Results</button>
-            <button className={page === "evaluation" ? "top-nav-link active" : "top-nav-link"} onClick={() => navigate("evaluation")}>Test me</button>
+            <button className={page === "evaluation" ? "top-nav-link active" : "top-nav-link"} onClick={() => navigate("evaluation")}>Test Hally</button>
             <button className={page === "behind" ? "top-nav-link active" : "top-nav-link"} onClick={() => navigate("behind")}>Behind the scenes</button>
           </nav>
           <div className="topbar-right">
@@ -233,7 +233,7 @@ function App() {
           )}
           {page === "results" && result && <ResultsPage result={result} usedDemo={usedDemo} onAskAgain={() => navigate(returnPage)} backLabel="← Back to question" />}{page === "results" && !result && <section className="page-section"><div className="empty-state panel results-empty"><h2>Ask a question first</h2><p>Your verification report will appear here after you run a question.</p><button className="button button-primary" onClick={() => navigate("ask")}>Start a question <span>→</span></button></div></section>}
         </div>
-        <footer className="app-footer"><span>Hally <span className="footer-dot">·</span> Your AI hallucination detector &amp; corrector</span><span>{isApiConfigured ? `API: ${API_BASE_URL}` : "API not configured"}</span></footer>
+        <footer className="app-footer"><span>Hally <span className="footer-dot">·</span> Evidence-based answer verification</span><span>{isApiConfigured ? `API: ${API_BASE_URL}` : "API not configured"}</span></footer>
       </main>
     </div>
   );
@@ -254,7 +254,7 @@ function HomePage({ onStart, onEvaluation, onBehind }) {
   ];
   return <section className="home-page">
     <div className="hero">
-      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> <AnimatedText text="HI! I’M HALLY" /></div><h1 className="hero-title"><span className="type-line">{Array.from("Your hallucination detector").map((letter, i) => <span className="type-letter" key={`a-${i}`} style={{ "--letter-index": i }}>{letter === " " ? "\u00a0" : letter}</span>)}</span><br /><span className="type-line accent-line">{Array.from("& corrector.").map((letter, i) => <span className="type-letter" key={`b-${i}`} style={{ "--letter-index": i + 23 }}>{letter === " " ? "\u00a0" : letter}</span>)}</span></h1><p className="hero-pun">In AI, not humans.</p><p className="hero-description">AI can make things up with a straight face. I help you catch those made-up bits, check the receipts, and see what actually adds up.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={onBehind}>Curious how it works? <span>→</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div><div className="home-quick-links"><button onClick={onEvaluation}>Run a contradiction test <span>→</span></button><span>Try a tricky claim and see what Hally spots.</span></div></div>
+      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> <AnimatedText text="SAY HI TO HALLY" /></div><h1 className="hero-title"><span className="type-line">{Array.from("Hallucination detection").map((letter, i) => <span className="type-letter" key={`a-${i}`} style={{ "--letter-index": i }}>{letter === " " ? "\u00a0" : letter}</span>)}</span><br /><span className="type-line accent-line">{Array.from("& correction.").map((letter, i) => <span className="type-letter" key={`b-${i}`} style={{ "--letter-index": i + 23 }}>{letter === " " ? "\u00a0" : letter}</span>)}</span></h1><p className="hero-pun">In AI, not humans.</p><p className="hero-description">AI can make things up with a straight face. Hally helps you catch that, check the receipts, and see what actually adds up.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={onBehind}>Curious how it works? <span>→</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div><div className="home-quick-links"><button onClick={onEvaluation}>Run a contradiction test <span>→</span></button><span>Try a tricky claim and see what Hally spots.</span></div></div>
       <div className="hero-visual" aria-label="Animated illustration of Hally checking an AI answer"><div className="hallucination-orbit" aria-hidden="true"><span className="orbit-ring ring-one"></span><span className="orbit-ring ring-two"></span><span className="orbit-spark">?</span><span className="orbit-check">✓</span><span className="orbit-dot"></span></div>
         <div className="visual-top"><span className="visual-dot" /><span className="visual-dot" /><span className="visual-dot" /><span className="visual-title">HOW VERIFICATION WORKS</span><span className="visual-live">WORKFLOW EXAMPLE</span></div>
         <div className="pipeline">
@@ -272,7 +272,7 @@ function HomePage({ onStart, onEvaluation, onBehind }) {
     <div id="workflow-details" className="section-intro"><div><div className="eyebrow">THE WORKFLOW</div><h2>Four small steps. No mystery.</h2></div><p>Find the evidence, draft an answer, check the claims, then tidy up anything the evidence can’t support. Tap a step to explore it.</p></div>
     <div className="steps-grid">{steps.map(([number, title, desc]) => <details className="step-card step-interactive" key={number}><summary><span className="step-number">{number}</span><span className="step-summary-copy"><strong>{title}</strong><small>Tap to see what happens</small></span><span className="step-expand" aria-hidden="true">+</span></summary><p>{desc}</p></details>)}</div>
     <section className="platform-section">
-      <div className="section-intro"><div><div className="eyebrow">A LITTLE ABOUT ME</div><h2>Sounds right ≠ is right.</h2></div><p>I help you ask, “Wait — where did that come from?” I put an answer next to its evidence, so you can inspect it, challenge it, and make up your own mind.</p></div>
+      <div className="section-intro"><div><div className="eyebrow">ABOUT HALLY</div><h2>Sounds right ≠ is right.</h2></div><p>Hally helps you ask, “Wait — where did that come from?” It puts the answer next to the evidence, so you can inspect it, challenge it, and make up your own mind.</p></div>
       <div className="platform-grid">
         <article className="platform-card"><span className="platform-icon">⌕</span><h3>Bring your own receipts</h3><p>Use your own text or upload a plain-text document as evidence.</p></article>
         <article className="platform-card"><span className="platform-icon">✓</span><h3>Check the claims</h3><p>Claims are labelled as supported, contradicted, or not supported by enough evidence.</p></article>
@@ -294,12 +294,12 @@ function BehindScenesPage({ onStart, onEvaluation }) {
     </div>
     <div className="behind-intro panel"><div className="behind-intro-kicker">THE SHORT VERSION</div><h2>Good answers show their work.</h2><p>AI can get a detail wrong even when the rest sounds convincing. I check answers against the evidence, show you what lines up, and flag what needs a closer look.</p><div className="behind-intro-tags"><span>Evidence first</span><span>Claims checked</span><span>Clear reasons</span></div></div>
     <div className="behind-grid">
-      <article className="behind-card"><span>01</span><h3>Find the receipts</h3><p>I use the source you choose: a website search, a text document, or evidence you paste in.</p></article>
+      <article className="behind-card"><span>01</span><h3>Find the receipts</h3><p>Hally uses the source you choose: a website search, a text document, or evidence you paste in.</p></article>
       <article className="behind-card"><span>02</span><h3>Break it into claims</h3><p>Instead of treating a whole answer as one big fact, it looks at the individual things the answer says.</p></article>
       <article className="behind-card"><span>03</span><h3>Check what adds up</h3><p>Each claim is compared with the available evidence. It might be supported, contradicted, or still unclear.</p></article>
       <article className="behind-card"><span>04</span><h3>Show the why</h3><p>The report helps you see the evidence behind the verdict, so you can judge it for yourself.</p></article>
     </div>
-    <div className="behind-note"><strong>One thing to keep in mind</strong><p>I’m a helper, not an all-knowing fact machine. If the evidence is thin or a claim really matters, check the original source too.</p></div>
+    <div className="behind-note"><strong>One thing to keep in mind</strong><p>Hally is a helper, not an all-knowing fact machine. If the evidence is thin or a claim really matters, check the original source too.</p></div>
     <div className="behind-actions"><button className="button button-primary" onClick={onStart}>Okay, let’s try it <span>→</span></button><button className="button button-ghost" onClick={onEvaluation}>Try a mini test</button></div>
   </section>;
 }
@@ -311,7 +311,7 @@ function EvaluationPage({ onRunTest }) {
     { id: "insufficient", label: "Insufficient evidence", intent: "Check that the system avoids filling in a missing fact.", question: "Verify this claim: The Eiffel Tower opened to the public in 1900.", evidence: "The Eiffel Tower was completed in 1889.", expected: "The provided passage gives a completion year, not a public opening date." }
   ];
   return <section className="page-section evaluation-page">
-    <div className="page-heading"><div><div className="eyebrow">TRY A LITTLE EXPERIMENT</div><h1><AnimatedText text="Let’s test Hally." /></h1><p>Pick a mini challenge and see if I catch what’s off. The results are real, not staged.</p></div></div>
+    <div className="page-heading"><div><div className="eyebrow">TRY A LITTLE EXPERIMENT</div><h1><AnimatedText text="Let’s test Hally." /></h1><p>Pick a mini challenge and see if Hally catches what’s off. The results are real, not staged.</p></div></div>
     <div className="evaluation-notice"><strong>How to use these tests</strong><p>Select a case to load its question and evidence into the workspace. Then run verification and compare the actual report with the test intent. The model may fail a case; that is useful evaluation data, not a result to hide.</p></div>
     <div className="evaluation-grid">{tests.map((test, index) => <article className="evaluation-card panel" key={test.id}><div className="evaluation-card-top"><span className="step-number">0{index+1}</span><span className="evaluation-kind">CONTROLLED INPUT</span></div><h2>{test.label}</h2><p>{test.intent}</p><div className="evaluation-field"><span>QUESTION</span><p>{test.question}</p></div><div className="evaluation-field"><span>EVIDENCE</span><p>{test.evidence}</p></div><div className="evaluation-expectation"><strong>Test intent</strong><p>{test.expected}</p></div><button className="button button-primary" onClick={() => onRunTest(test)}>Load test in workspace <span>→</span></button></article>)}</div>
   </section>;
