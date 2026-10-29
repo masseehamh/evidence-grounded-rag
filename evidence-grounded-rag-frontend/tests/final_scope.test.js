@@ -82,3 +82,17 @@ test("report omits unsupported confidence percentages and labels the actual veri
   assert.match(appSource, /className="claim-details"/);
   assert.match(appSource, /className="source-details"/);
 });
+
+
+test("claim report shows verdict, decisive evidence, and the backend reason before technical details", () => {
+  assert.match(appSource, /Decisive evidence/);
+  assert.match(appSource, /Why this verdict/);
+  assert.match(appSource, /claim\.reason \|\|/);
+  assert.match(appSource, /Technical verification details/);
+  assert.match(appSource, /NUMERIC CONSISTENCY CHECK/);
+  assert.doesNotMatch(appSource, /OVERALL CONFIDENCE|\b\d+% confidence/i);
+});
+
+test("mobile navigation closes on Escape and responsive report content can wrap", () => {
+  assert.match(appSource, /event\.key === "Escape"/);
+});
