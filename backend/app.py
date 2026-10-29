@@ -441,6 +441,17 @@ def verify_user_claims(question: str, evidence: str) -> list[dict[str, Any]]:
         if status == "SUPPORTED" and not excerpt:
             status = "NOT_ENOUGH_EVIDENCE"
             reason = "No exact evidence passage was returned to substantiate this claim."
+        # A generic passage about a named character/person cannot establish the user's
+        # first-person identity or abilities. Keep such personal assertions unresolved
+        # unless the verifier can cite the exact proposition itself (not merely a related topic).
+        first_person_assertion = bool(re.match(
+            r"^\\s*(?:verify this claim:\\s*)?(?:i\\s+(?:am|\u2019m|'m|can|could|have|had|will|was|were|do|did)\\b)",
+            claim, re.IGNORECASE
+        ))
+        if first_person_assertion and status == "SUPPORTED" and claim.strip() not in evidence:
+            status = "NOT_ENOUGH_EVIDENCE"
+            reason = "The evidence does not directly establish this first-person assertion about the user; related-topic evidence is insufficient."
+            excerpt = ""
         results.append({
             "claim": claim, "status": status, "evidence": excerpt,
             "reason": reason or "The available evidence does not establish this claim directly.",
