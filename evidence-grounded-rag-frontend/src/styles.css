@@ -295,3 +295,65 @@ button, input, textarea, select { font-size: inherit; }
   .result-actions { align-items: flex-start; flex-direction: column; gap: 12px; }
   .result-actions .button { width: 100%; justify-content: center; }
 }
+
+
+/* Visual refresh: warm ivory, deep ink, and confident indigo with restrained coral accents. */
+:root {
+  color:#20243a;
+  background:#f7f6f2;
+  --navy:#20243a;
+  --ink:#20243a;
+  --muted:#77798b;
+  --line:#e7e4de;
+  --teal:#5559a8;
+  --teal-soft:#eeeffb;
+  --blue:#5559a8;
+}
+body { background:#f7f6f2; color:#20243a; }
+.sidebar { background:#20243a; color:#f8f7fc; }
+.brand-mark { background:#f0a38b; color:#29233d; }
+.nav-item { color:#c0c1d2; }
+.nav-item:hover,.nav-item.active { background:#303551; color:#fff; }
+.nav-item.active { box-shadow:inset 3px 0 #f0a38b; }
+.sidebar-note { border-color:#41445f; }
+.note-icon,.eyebrow-line { color:#f0a38b; }
+.hero h1 span { color:#5559a8; }
+.eyebrow { color:#7777a8; }
+.button-primary { background:#5559a8; color:#fff; box-shadow:0 4px 12px #5559a81f; }
+.button-primary:hover:not(:disabled) { background:#45498f; }
+.button-ghost { border-color:#dedce7; color:#42465e; }
+.button-ghost:hover { border-color:#b9b9d5; background:#f8f7fc; }
+.hero-visual,.panel,.step-card,.mode-card,.question-form,.evaluation-card { border-color:#e7e4de; box-shadow:0 5px 22px #29233d08; }
+.hero-visual { background:#fffefa; }
+.pipeline-node { background:#fbfaf7; border-color:#e9e6e0; }
+.pipeline-icon { background:#eeeffb; color:#5559a8; }
+.pipeline-node.corrected { background:#f0f6ef; border-color:#dce9d9; }
+.pipeline-node.corrected .pipeline-icon { background:#dcebd9; color:#3e765d; }
+.claim-mini { background:#f7f6f2; border-left-color:#d9d6e9; }
+.claim-mark.good { background:#e0efe4; color:#3d795b; }
+.claim-mark.warn { background:#fff0e4; color:#a55b3d; }
+.home-bottom { background:#f0effb; border-color:#e2e1f4; }
+.bottom-icon { color:#5559a8; }
+.step-number { background:#eeeffb; color:#5559a8; }
+.mode-card.selected { border-color:#777bd0; box-shadow:0 0 0 2px #eeeffb; }
+.mode-card.selected .mode-icon { background:#eeeffb; color:#5559a8; }
+.selected .mode-radio { background:#5559a8; border-color:#5559a8; }
+.question-form textarea { background:#fffefa; border-color:#e1ded8; color:#292b40; }
+.question-form textarea:focus { border-color:#777bd0; box-shadow:0 0 0 3px #eeeffb; }
+.question-form textarea::placeholder { color:#a3a0a9; }
+.topbar { background:#fffefa; border-color:#e7e4de; }
+.app-footer { border-color:#e7e4de; }
+.avatar { background:#eeeffb; color:#5559a8; }
+.connection.online>span { background:#4d936d; }
+.status-pill { border-radius:999px; }
+.claim-details > summary,.source-details > summary { color:#5559a8; }
+.claim-reason { border-left-color:#f0a38b; background:#fff6f1; }
+.evaluation-notice { background:#f0effb; border-color:#e2e1f4; border-left-color:#5559a8; }
+.evaluation-notice strong { color:#3e427f; }
+.evaluation-field { background:#fffefa; border-color:#e7e4de; }
+.drawer-backdrop { background:#17192bb8; }
+.menu-button { border-color:#dedce7; background:#fffefa; }
+@media (prefers-color-scheme: dark) {
+  /* Keep the intended palette consistent regardless of operating-system theme. */
+  body { background:#f7f6f2; color:#20243a; }
+}
