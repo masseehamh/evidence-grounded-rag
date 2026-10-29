@@ -13,6 +13,7 @@ import uuid
 from typing import Any, Optional
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -708,22 +709,79 @@ def retrieve_document_context(question: str, document_text: str, top_k: int = 3)
 
 
 
-def search_web_evidence(question: str, max_results: int = 5) -> list[dict[str, str]]:
-    """Retrieve short web passages for evidence-grounded answering."""
+# Deliberately conservative source policy: web snippets are not automatically trustworthy.
+# Government, academic, intergovernmental, established scientific, and selected wire/news
+# publishers are allowed; unknown domains are withheld rather than presented as verified.
+TRUSTED_EXACT_DOMAINS = {
+    "who.int", "un.org", "europa.eu", "nasa.gov", "nih.gov", "cdc.gov",
+    "pubmed.ncbi.nlm.nih.gov", "nature.com", "science.org", "sciencedirect.com",
+    "springer.com", "wiley.com", "reuters.com", "apnews.com", "bbc.com",
+    "bbc.co.uk", "theguardian.com", "ourworldindata.org", "worldbank.org",
+    "imf.org", "oecd.org", "data.gov", "india.gov.in",
+}
+BLOCKED_HOSTS = {
+    "reddit.com", "quora.com", "medium.com", "facebook.com", "instagram.com",
+    "tiktok.com", "x.com", "twitter.com", "pinterest.com", "youtube.com",
+}
+
+
+def source_domain(url: str) -> str:
+    """Return a normalized hostname, rejecting malformed or non-HTTPS URLs."""
+    try:
+        parsed = urlparse(url.strip())
+        if parsed.scheme.lower() != "https" or not parsed.hostname:
+            return ""
+        host = parsed.hostname.lower().rstrip(".")
+        if host.startswith("www."):
+            host = host[4:]
+        return host
+    except (TypeError, ValueError):
+        return ""
+
+
+def source_is_trusted(url: str) -> bool:
+    """Allow only HTTPS sources from known public institutions or selected publishers."""
+    host = source_domain(url)
+    if not host or any(host == blocked or host.endswith("." + blocked) for blocked in BLOCKED_HOSTS):
+        return False
+    if host.endswith((".gov", ".gov.in", ".edu", ".edu.in", ".ac.in", ".ac.uk", ".edu.au", ".int")):
+        return True
+    return any(host == domain or host.endswith("." + domain) for domain in TRUSTED_EXACT_DOMAINS)
+
+
+def search_web_evidence(question: str, max_results: int = 8) -> list[dict[str, str]]:
+    """Retrieve evidence only from a conservative allowlist of HTTPS source domains.
+
+    This is a provenance filter, not a guarantee that every allowed page is accurate.
+    Unrecognized sources are excluded; if no allowed results remain, callers must abstain.
+    """
     try:
         results = DDGS().text(question, max_results=max_results)
     except Exception:
         raise RuntimeError("Web search is temporarily unavailable. Please try again later.") from None
 
     sources: list[dict[str, str]] = []
+    seen_urls: set[str] = set()
     for item in results or []:
         if not isinstance(item, dict):
             continue
         title = str(item.get("title") or "Web result").strip()
         url = str(item.get("href") or item.get("url") or "").strip()
         passage = str(item.get("body") or item.get("snippet") or "").strip()
-        if passage:
-            sources.append({"title": title, "url": url, "passage": passage})
+        domain = source_domain(url)
+        if not passage or not domain or not source_is_trusted(url):
+            continue
+        normalized_url = url.split("#", 1)[0].rstrip("/")
+        if normalized_url in seen_urls:
+            continue
+        seen_urls.add(normalized_url)
+        sources.append({
+            "title": title,
+            "url": url,
+            "domain": domain,
+            "trust_level": "allowlisted_domain_unverified_page",
+            "passage": passage,
+        })
     return sources
 
 
