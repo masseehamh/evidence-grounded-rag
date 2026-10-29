@@ -1,7 +1,12 @@
 // `import.meta.env` only exists under Vite; plain Node (npm test) has no such object.
 // The process.env fallback lets the Node tests point at a test server; browsers ignore it.
+// Use the deployed API by default so the hosted frontend does not silently fall
+// back to demo data when VITE_API_BASE_URL was omitted from the hosting settings.
+// An explicit environment variable still takes precedence for local/dev deployments.
 const configuredBaseUrl =
-  import.meta.env?.VITE_API_BASE_URL || globalThis.process?.env?.VITE_API_BASE_URL || "";
+  import.meta.env?.VITE_API_BASE_URL ||
+  globalThis.process?.env?.VITE_API_BASE_URL ||
+  "https://evidence-grounded-rag-api.onrender.com";
 export const API_BASE_URL = configuredBaseUrl.trim().replace(/\/+$/, "");
 export const isApiConfigured = Boolean(API_BASE_URL);
 
