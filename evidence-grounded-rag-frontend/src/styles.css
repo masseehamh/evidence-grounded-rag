@@ -810,3 +810,117 @@ body { background:radial-gradient(ellipse at 80% 0%,#eee7f0 0,transparent 28rem)
 @media(prefers-reduced-motion:reduce) {
  .ring-one,.ring-two { animation:none !important; }
 }
+
+
+/* Hally's own cosmic evidence field — inspired by motion and depth, not another site's artwork. */
+.hero {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(320px,.92fr);
+  gap:clamp(24px,3vw,48px);
+  align-items:center;
+  padding:clamp(26px,4vw,54px);
+  border-radius:28px;
+  background:
+    radial-gradient(ellipse at 76% 43%, #413b58 0%, #252436 31%, transparent 59%),
+    radial-gradient(ellipse at 12% 110%, #353047 0%, transparent 45%),
+    #191923;
+  color:#f8f6fb;
+  box-shadow:0 22px 60px #211b2b20;
+}
+.hero::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  opacity:.55;
+  background-image:
+    radial-gradient(circle at 8% 19%,#d7d1ed 0 1px,transparent 1.7px),
+    radial-gradient(circle at 18% 73%,#aaa1c8 0 1px,transparent 1.8px),
+    radial-gradient(circle at 34% 34%,#f3e9ff 0 1.2px,transparent 2px),
+    radial-gradient(circle at 49% 12%,#a7b5d8 0 1px,transparent 1.8px),
+    radial-gradient(circle at 61% 81%,#e5d9ff 0 1px,transparent 1.8px),
+    radial-gradient(circle at 89% 23%,#c6b4e6 0 1.2px,transparent 2px),
+    radial-gradient(circle at 95% 66%,#b7c9e8 0 1px,transparent 1.8px),
+    radial-gradient(circle at 73% 8%,#f3e9ff 0 1px,transparent 1.8px);
+  background-size:100% 100%;
+  animation:starfield-drift 22s ease-in-out infinite alternate;
+}
+.hero::after {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  width:min(54vw,650px);
+  aspect-ratio:1;
+  right:-6%;
+  top:50%;
+  transform:translateY(-50%);
+  border-radius:50%;
+  border:1px solid #c5b5e52b;
+  box-shadow:0 0 0 28px #b9acd00a,0 0 0 70px #b9acd00a,0 0 90px #9e8ac52b;
+  pointer-events:none;
+  animation:cosmic-breathe 8s ease-in-out infinite;
+}
+.hero-copy { position:relative; z-index:2; }
+.hero .eyebrow,.hero .hero-pun { color:#d9c7f0 !important; }
+.hero .hero-title { color:#fff !important; }
+.hero .hero-title .accent-line { color:#d9c7f0 !important; }
+.hero .hero-description { color:#e2deea !important; max-width:470px; line-height:1.8; }
+.hero .hero-meta { color:#c9c3d5 !important; }
+.hero .tiny-check { color:#b8d6bd; }
+.hero .home-quick-links { color:#c9c3d5 !important; }
+.hero .home-quick-links button { color:#e5d7fa; }
+.hero .button-primary { background:#d9c7f0 !important; color:#241f30 !important; border-color:#d9c7f0 !important; box-shadow:0 4px 0 #8b79a7 !important; }
+.hero .button-primary:hover { background:#e8dcf8 !important; }
+.hero .button-ghost { background:#ffffff0a !important; color:#fff !important; border-color:#777087 !important; }
+.hero .button-ghost:hover { background:#ffffff15 !important; border-color:#c5b5e5 !important; }
+.hero-visual {
+  min-width:0;
+  min-height:440px;
+  overflow:hidden;
+  border:1px solid #8d80a64d !important;
+  border-radius:22px;
+  background:linear-gradient(145deg,#292738eF,#171720f5) !important;
+  box-shadow:0 18px 55px #08080e66,inset 0 0 35px #a89ac40a !important;
+}
+.hero-visual::before {
+  z-index:0;
+  width:clamp(260px,34vw,430px);
+  height:clamp(260px,34vw,430px);
+  background:
+    radial-gradient(circle at 50% 50%,#8c7db21b 0 28%,transparent 29%),
+    radial-gradient(circle at 50% 50%,transparent 42%,#a89ac42b 42.3% 42.7%,transparent 43%),
+    radial-gradient(circle at 50% 50%,transparent 57%,#a89ac41f 57.3% 57.7%,transparent 58%);
+  animation:cosmic-breathe 7s ease-in-out infinite;
+}
+.hero-visual .visual-top,.hero-visual .pipeline,.hero-visual .visual-caption { z-index:2; }
+.hero-visual .visual-title,.hero-visual .visual-live,.hero-visual .visual-caption { color:#d7cce7 !important; }
+.hero-visual .pipeline-node { background:#292737 !important; border-color:#514860 !important; color:#f4effa; }
+.hero-visual .pipeline-node small,.hero-visual .claim-mini small { color:#c0b8ce !important; }
+.hero-visual .pipeline-icon { background:#3c354d !important; color:#d9c7f0 !important; }
+.hero-visual .claim-mini { background:#252432 !important; border-left-color:#a99ac6 !important; }
+.hero-visual .claim-mark.good { background:#2e433b !important; color:#b8d6bd !important; }
+.hero-visual .claim-mark.warn { background:#4b3947 !important; color:#efc0cf !important; }
+.hero-visual .pipeline-node.corrected { background:#26362f !important; border-color:#536b5a !important; }
+.hero-visual .pipeline-node.corrected .pipeline-icon { background:#34483c !important; color:#c6e3cc !important; }
+.hero-visual .hallucination-orbit { z-index:3; }
+.hero-visual .orbit-ring { border-color:#b8a9d8; box-shadow:0 0 18px #b7a4e21b; }
+.hero-visual .orbit-spark { background:#4a394c; color:#f4c4d4; }
+.hero-visual .orbit-check { background:#304638; color:#c6e3cc; }
+@keyframes starfield-drift { from { transform:translate3d(0,0,0); opacity:.32; } to { transform:translate3d(-8px,7px,0); opacity:.7; } }
+@keyframes cosmic-breathe { 0%,100% { opacity:.48; scale:1; } 50% { opacity:.9; scale:1.025; } }
+@media(max-width:800px) {
+ .hero { grid-template-columns:minmax(0,1fr); padding:24px; gap:28px; }
+ .hero::after { width:90vw; right:-25%; top:56%; }
+ .hero-visual { min-height:400px; }
+}
+@media(max-width:540px) {
+ .hero { padding:20px 16px; border-radius:22px; }
+ .hero-visual { min-height:360px; }
+}
+@media(prefers-reduced-motion:reduce) {
+ .hero::before,.hero::after,.hero-visual::before { animation:none !important; }
+}
