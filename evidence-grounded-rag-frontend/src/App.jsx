@@ -244,7 +244,7 @@ function HomePage({ onStart, onEvaluation }) {
     <div id="workflow-details" className="section-intro"><div><div className="eyebrow">THE WORKFLOW</div><h2>From question to verified answer.</h2></div><p>Make each step visible, so evaluators can see not just what the system answered, but why.</p></div>
     <div className="steps-grid">{steps.map(([number, title, desc]) => <article className="step-card" key={number}><span className="step-number">{number}</span><h3>{title}</h3><p>{desc}</p></article>)}</div>
     <section className="platform-section">
-      <div className="section-intro"><div><div className="eyebrow">ABOUT VERITY RAG</div><h2>More than a fluent answer.</h2></div><p>Verity RAG is an evidence-grounded question-answering prototype built to make AI answers easier to inspect, challenge, and trust responsibly.</p></div>
+      <div className="section-intro"><div><div className="eyebrow">ABOUT VERITY RAG</div><h2>More than a fluent answer.</h2></div><p>Verity RAG is an evidence-grounded question-answering application designed to make AI answers easier to inspect, challenge, and verify responsibly.</p></div>
       <div className="platform-grid">
         <article className="platform-card"><span className="platform-icon">⌕</span><h3>Three evidence paths</h3><p>Use your own text, upload a plain-text document, or search the web for relevant evidence.</p></article>
         <article className="platform-card"><span className="platform-icon">✓</span><h3>Claim-level checks</h3><p>Claims are labelled as supported, contradicted, or not supported by enough evidence.</p></article>
