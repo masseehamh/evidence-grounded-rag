@@ -62,11 +62,17 @@ function looksLikeHtml(text) {
   return /<\s*(!doctype|html|head|body)\b/i.test(text || "");
 }
 
-// Only https backends are tunnels in this project; the local fallback is plain http.
+// Only show tunnel-specific recovery steps for actual ngrok URLs.
+// A Render URL is a hosted service, not a Colab/ngrok tunnel.
 function offlineHint() {
+  if (/https:\/\/(?:[^/]+\.)?ngrok(?:-free)?\.(?:app|dev|io)\b/i.test(API_BASE_URL)) {
+    return ` The URL ${API_BASE_URL} is an ngrok tunnel: if its Colab runtime stopped, restart the runtime, re-run the FastAPI + ngrok cell, and update VITE_API_BASE_URL with the new tunnel URL.`;
+  }
+  if (/\.onrender\.com\/?$/i.test(API_BASE_URL)) {
+    return ` The URL is a Render service. Check the backend service's Events and Logs in Render, then open ${API_BASE_URL}/api/health. If it is waking from an idle state, wait about a minute and retry. If the health URL works but this app still cannot connect, check the frontend's configured VITE_API_BASE_URL and browser console for a CORS/network error.`;
+  }
   if (!API_BASE_URL.startsWith("https://")) return "";
-  return ` The URL ${API_BASE_URL} looks like a Colab/ngrok tunnel: if the Colab runtime stopped, ` +
-    "restart it, re-run the FastAPI + ngrok cell, and copy the new URL into .env as VITE_API_BASE_URL.";
+  return ` Check that the hosted API at ${API_BASE_URL} is running and reachable, and confirm VITE_API_BASE_URL is the API base URL.`;
 }
 
 async function readBody(response) {
