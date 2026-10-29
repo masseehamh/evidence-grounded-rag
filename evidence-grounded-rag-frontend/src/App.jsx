@@ -3,7 +3,7 @@ import { API_BASE_URL, isApiConfigured, checkHealth, uploadDocument, askBackend,
 import { demoResult } from "./demoData.js";
 
 function AnimatedText({ text, className = "" }) {
-  return <span className={`animated-text ${className}`} aria-label={text}>{Array.from(text).map((letter, index) => <span className="type-letter" key={`${text}-${index}`} style={{ "--letter-index": index }}>{letter === " " ? "\\u00a0" : letter}</span>)}</span>;
+  return <span className={`animated-text ${className}`} aria-label={text}>{Array.from(text).map((letter, index) => <span className="type-letter" key={`${text}-${index}`} style={{ "--letter-index": index }}>{letter === " " ? "\u00a0" : letter}</span>)}</span>;
 }
 
 function StatusPill({ status }) {
