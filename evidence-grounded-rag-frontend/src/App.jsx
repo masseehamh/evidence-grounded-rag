@@ -14,7 +14,8 @@ function StatusPill({ status }) {
 function App() {
   const [page, setPage] = useState("home");
   const [returnPage, setReturnPage] = useState("ask");
-  const [mode, setMode] = useState("manual");
+  const [mode, setMode] = useState("web");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [question, setQuestion] = useState("");
   const [evidence, setEvidence] = useState("");
   const [file, setFile] = useState(null);
@@ -171,21 +172,35 @@ function App() {
                 <button className="button button-ghost" onClick={clearForm}>↺ Clear</button>
               </div>
               <div className="mode-grid">
-                <ModeCard active={mode === "manual"} icon="≡" title="Manual evidence" desc="Paste source text directly." onClick={() => selectMode("manual")} />
-                <ModeCard active={mode === "document"} icon="⇧" title="Upload document" desc="Ask about a file you provide." onClick={() => selectMode("document")} />
-                <ModeCard active={mode === "web"} icon="⌕" title="Web search" desc="Find current online sources for your question." onClick={() => selectMode("web")} />
+                <ModeCard active={mode === "web"} icon="⌕" title="Web search" desc="Find online sources relevant to your question." onClick={() => selectMode("web")} />
+                <ModeCard active={mode === "document"} icon="⇧" title="Upload document" desc="Use a document you have permission to share." onClick={() => selectMode("document")} />
+              </div>
+              <div className="advanced-evidence">
+                <button type="button" className="advanced-toggle" aria-expanded={showAdvanced} onClick={() => { setShowAdvanced(!showAdvanced); if (!showAdvanced) selectMode("manual"); else selectMode("web"); }}>
+                  <span>{showAdvanced ? "−" : "+"}</span> Advanced: use specific evidence text
+                  <small>For controlled tests or when you already have a source excerpt</small>
+                </button>
+                {showAdvanced && <ModeCard active={mode === "manual"} icon="≡" title="Manual evidence" desc="Paste an exact excerpt and verify only against that text." onClick={() => selectMode("manual")} />}
               </div>
               <form className="question-form panel" onSubmit={handleSubmit}>
+                <div className="usage-guidance">
+                  <div className="guidance-heading"><span>✓</span><div><strong>For a useful verification report</strong><small>Three checks that improve the quality of the result</small></div></div>
+                  <ul>
+                    <li><strong>Ask one answerable question.</strong> Include a date, place, entity, or comparison when it changes the answer.</li>
+                    <li><strong>Make the evidence match the question.</strong> For time-sensitive topics, check publication dates and open the original source links.</li>
+                    <li><strong>Read uncertainty as a result.</strong> “Not enough evidence” means the retrieved material did not establish the claim—not that the claim is necessarily false.</li>
+                  </ul>
+                </div>
                 {mode === "web" && <div className="web-mode-note"><span>⌕</span><div><strong>Search the web for evidence</strong><p>Verity retrieves online snippets, then generates, verifies, and corrects an answer against the retrieved evidence. Check the linked sources in the report.</p></div></div>}
                 <div className="form-title"><span className="step-number">01</span><div><h2>Your question</h2><p>Be specific about what you want the evidence to establish.</p></div></div>
                 <label htmlFor="question">Question</label>
-                <textarea id="question" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="e.g. What results are reported, and what is not supported?" rows={3} />
+                <textarea id="question" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="e.g. What date did the policy take effect, and which source confirms it?" rows={3} />
                 {mode === "manual" && <>
                   <div className="field-row"><label htmlFor="evidence">Evidence text</label><span className="field-hint">Paste excerpts, notes, or source text</span></div>
-                  <textarea id="evidence" value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Paste the evidence that the answer must be grounded in..." rows={7} />
+                  <textarea id="evidence" value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Paste the relevant source passage. Keep surrounding context needed to interpret it." rows={7} />
                 </>}
                 {mode === "document" && <div className="upload-box">
-                  <div className="upload-symbol">⇧</div><div><strong>{file ? file.name : "Choose a .txt document"}</strong><p>Plain-text .txt file, up to 2 MB. The document is sent only to the configured backend.</p><label className="button button-ghost file-button" htmlFor="document-file">Browse files</label><input id="document-file" type="file" accept=".txt,text/plain" onChange={handleFileChange} /></div>
+                  <div className="upload-symbol">⇧</div><div><strong>{file ? file.name : "Choose a .txt document"}</strong><p>Plain-text .txt file, up to 2 MB. Upload only material you are authorized to share; ask a focused question that the file can answer.</p><label className="button button-ghost file-button" htmlFor="document-file">Browse files</label><input id="document-file" type="file" accept=".txt,text/plain" onChange={handleFileChange} /></div>
                   {documentId && <span className="upload-ready"><span aria-hidden="true">✓</span> Uploaded — ready for questions</span>}
                 </div>}
                 {error && <div className="error-message" role="alert"><strong>Could not process request</strong><span>{error}</span></div>}
