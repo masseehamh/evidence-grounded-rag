@@ -106,3 +106,17 @@ test("the homepage uses friendly language and interactive workflow steps", () =>
   assert.match(appSource, /Got a claim\? Let’s see if the evidence backs it up/);
   assert.match(appSource, /Here’s the tea/);
 });
+
+
+test("Hally branding uses an H mark and provides a Curious Corner workspace", () => {
+  assert.match(appSource, /className="brand-mark">H</);
+  assert.doesNotMatch(appSource, /className="brand-mark">V</);
+  assert.match(appSource, /Curious\? Behind the scenes/);
+  assert.match(appSource, /function BehindScenesPage/);
+  assert.match(appSource, /Curious about the behind-scenes\?/);
+});
+
+test("workspace and overview breadcrumbs navigate back to the overview", () => {
+  assert.match(appSource, /className="breadcrumb-link" onClick=\{\(\) => navigate\("home"\)\}>Workspace/);
+  assert.match(appSource, /className="breadcrumb-link" onClick=\{\(\) => navigate\("home"\)\}>Overview/);
+});
