@@ -55,3 +55,30 @@ test("the evidence behind a corrected answer is preserved for display", () => {
   assert.match(withEvidence.corrected_evidence, /1921/);
   assert.equal(api.normalizeResult(RESULT).corrected_evidence, "");
 });
+
+
+test("mobile navigation has a visible menu control and closes through the drawer backdrop", () => {
+  assert.match(appSource, /className="menu-button"/);
+  assert.match(appSource, /aria-expanded=\{mobileNavOpen\}/);
+  assert.match(appSource, /className="drawer-backdrop"/);
+  assert.match(appSource, /setMobileNavOpen\(false\)/);
+});
+
+test("verification results explain the empty state and offer a start action", () => {
+  assert.doesNotMatch(appSource, /disabled=\{!result\}/);
+  assert.match(appSource, /Ask a question first/);
+  assert.match(appSource, /Start a question/);
+});
+
+test("clear action is beside the question field, not in the page heading", () => {
+  assert.match(appSource, /question-field-actions[\s\S]*?onClick=\{clearForm\}/);
+  assert.doesNotMatch(appSource, /page-heading[\s\S]{0,500}onClick=\{clearForm\}/);
+});
+
+test("report omits unsupported confidence percentages and labels the actual verifier", () => {
+  assert.doesNotMatch(appSource, /OVERALL CONFIDENCE/);
+  assert.match(appSource, /Instruction-model verifier/);
+  assert.match(appSource, /separately trained NLI classifier/);
+  assert.match(appSource, /className="claim-details"/);
+  assert.match(appSource, /className="source-details"/);
+});
