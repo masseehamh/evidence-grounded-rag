@@ -749,7 +749,21 @@ def source_is_trusted(url: str) -> bool:
     return any(host == domain or host.endswith("." + domain) for domain in TRUSTED_EXACT_DOMAINS)
 
 
-def search_web_evidence(question: str, max_results: int = 8) -> list[dict[str, str]]:
+def source_priority(domain: str) -> int:
+    """Rank primary institutional sources ahead of scholarly publishers and news outlets."""
+    host = (domain or "").lower().removeprefix("www.")
+    if host.endswith((".gov", ".gov.in", ".edu", ".edu.in", ".ac.in", ".ac.uk", ".edu.au", ".int")):
+        return 0
+    primary_domains = {"who.int", "un.org", "europa.eu", "worldbank.org", "imf.org", "oecd.org", "ourworldindata.org", "pubmed.ncbi.nlm.nih.gov"}
+    if any(host == item or host.endswith("." + item) for item in primary_domains):
+        return 0
+    scholarly_domains = {"nature.com", "science.org", "sciencedirect.com", "springer.com", "wiley.com"}
+    if any(host == item or host.endswith("." + item) for item in scholarly_domains):
+        return 1
+    return 2
+
+
+def search_web_evidence(question: str, max_results: int = 15) -> list[dict[str, str]]:
     """Retrieve evidence only from a conservative allowlist of HTTPS source domains.
 
     This is a provenance filter, not a guarantee that every allowed page is accurate.
