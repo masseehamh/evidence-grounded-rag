@@ -334,6 +334,13 @@ function ResultsPage({ result, usedDemo, onAskAgain, backLabel = "← Back to qu
   const insufficient = result.corrected_status === "NOT_ENOUGH_EVIDENCE" ||
     /not sufficient|no answer was generated/i.test(result.corrected_answer || "") ||
     /NOT[ _]ENOUGH[ _]EVIDENCE/i.test(result.verification_status || "");
+  if (result.verification_mode === "conversation") {
+    return <section className="page-section results-page conversation-page">
+      <div className="page-heading"><div><div className="eyebrow">HALLY · CONVERSATION</div><h1>Just chatting.</h1><p>No evidence check needed for this one.</p></div><button className="button button-ghost" onClick={onAskAgain}>{backLabel}</button></div>
+      <article className="answer-card panel conversation-answer"><div className="card-heading"><span className="answer-icon corrected-icon">✳</span><div><h2>Hally</h2><p>A natural response to what you said</p></div></div><div className="answer-body">{result.corrected_answer || result.original_answer || "Hey! What's up?"}</div></article>
+      <div className="result-actions"><span>Ask a factual question any time to use evidence-grounded verification.</span><button className="button button-primary" onClick={onAskAgain}>Keep chatting <span>→</span></button></div>
+    </section>;
+  }
   return <section className="page-section results-page">
     <div className="page-heading"><div><div className="eyebrow">YOUR FACT-CHECK REPORT</div><h1>Here’s the tea.</h1><p>Here’s what checked out, what didn’t, and what the evidence actually says.</p></div><button className="button button-ghost" onClick={onAskAgain}>{backLabel}</button></div>
     {result.demo_mode && <div className="demo-banner"><span>ⓘ</span><div><strong>Controlled correction demonstration{result.demo_scenario?.title ? `: ${result.demo_scenario.title}` : "."}</strong><p>{result.demo_scenario?.description ? `${result.demo_scenario.description} ` : ""}{result.demo_notice || "The initial answer is deliberately seeded as incorrect; the backend then runs verification, correction, and re-verification."}</p>{result.demo_scenario?.expected_behavior && <p><strong>What this scenario demonstrates:</strong> {result.demo_scenario.expected_behavior}</p>}</div></div>}
