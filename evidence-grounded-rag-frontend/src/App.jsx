@@ -167,6 +167,13 @@ function App() {
       <main className="main-area">
         <header className="topbar">
           <div className="breadcrumb"><button className="menu-button" type="button" aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"} aria-controls="app-sidebar" aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen(!mobileNavOpen)}><span></span><span></span><span></span></button><button className="breadcrumb-link" onClick={() => navigate("home")}>Workspace</button> <span>/</span> <button className="breadcrumb-link" onClick={() => navigate("home")}>Overview</button>{page !== "home" && <><span>/</span> <span>{page === "ask" ? "Ask a question" : page === "evaluation" ? "Evaluation tests" : page === "behind" ? "Behind the scenes" : "Verification results"}</span></>}</div>
+          <nav className="top-nav" aria-label="Main navigation">
+            <button className={page === "home" ? "top-nav-link active" : "top-nav-link"} onClick={() => navigate("home")}>Overview</button>
+            <button className={page === "ask" ? "top-nav-link active" : "top-nav-link"} onClick={() => navigate("ask")}>Ask a question</button>
+            <button className={page === "results" ? "top-nav-link active" : "top-nav-link"} onClick={() => navigate("results")}>Results</button>
+            <button className={page === "evaluation" ? "top-nav-link active" : "top-nav-link"} onClick={() => navigate("evaluation")}>Test Hally</button>
+            <button className={page === "behind" ? "top-nav-link active" : "top-nav-link"} onClick={() => navigate("behind")}>Behind the scenes</button>
+          </nav>
           <div className="topbar-right">
             <span className={`connection ${backendStatus}`}><span />{backendStatus === "online" ? "Backend connected" : backendStatus === "checking" ? "Checking backend" : backendStatus === "offline" ? "Backend unavailable" : "Demo mode"}</span>
             <span className="avatar">ER</span>
