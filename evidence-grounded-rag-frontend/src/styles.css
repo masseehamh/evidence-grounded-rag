@@ -357,3 +357,81 @@ body { background:#f7f6f2; color:#20243a; }
   /* Keep the intended palette consistent regardless of operating-system theme. */
   body { background:#f7f6f2; color:#20243a; }
 }
+
+
+/* Gen-Z visual direction: midnight plum, electric lilac, acid lime, and glassy surfaces. */
+:root {
+  --navy:#171426;
+  --ink:#211b32;
+  --muted:#777087;
+  --line:#e8e2f0;
+  --teal:#7655e8;
+  --teal-soft:#f0ebff;
+  --blue:#7655e8;
+  background:#faf8ff;
+  color:#211b32;
+}
+body { background:#faf8ff; color:#211b32; }
+.sidebar { background:#171426; color:#fbf8ff; }
+.brand-mark { background:#c6ff5e; color:#171426; border-radius:13px; }
+.nav-item { color:#bdb6d0; border-radius:11px; }
+.nav-item:hover,.nav-item.active { background:#29233e; color:#fff; }
+.nav-item.active { box-shadow:inset 3px 0 #c6ff5e; }
+.sidebar-note { border-color:#39314f; background:#201a33; }
+.note-icon,.eyebrow-line { color:#c6ff5e; }
+.brand small,.sidebar-note p { color:#aaa2bf; }
+.hero h1,.page-heading h1 { color:#211b32; }
+.hero h1 span { color:#7655e8; }
+.eyebrow { color:#7655e8; }
+.button { border-radius:10px; }
+.button-primary { background:#7655e8; color:white; box-shadow:0 6px 18px #7655e82b; }
+.button-primary:hover:not(:disabled) { background:#6242d0; }
+.button-ghost { border-color:#e2dbea; background:#fff; color:#453a5b; }
+.button-ghost:hover { border-color:#bca9f8; background:#f7f3ff; }
+.hero-visual,.panel,.step-card,.mode-card,.question-form,.evaluation-card {
+  border-color:#e8e2f0;
+  box-shadow:0 8px 28px #3320520a;
+}
+.hero-visual { background:#fff; border-radius:18px; }
+.visual-top { border-color:#f0ebf6; }
+.pipeline-node { background:#fcfbff; border-color:#ebe5f4; border-radius:11px; }
+.pipeline-icon { background:#f0ebff; color:#7655e8; border-radius:9px; }
+.pipeline-node.corrected { background:#f5ffe8; border-color:#e3f5c9; }
+.pipeline-node.corrected .pipeline-icon { background:#e8ffc5; color:#486e16; }
+.claim-mini { background:#f8f5ff; border-left-color:#c9baff; border-radius:0 9px 9px 0; }
+.claim-mark.good { background:#e8ffc5; color:#456b16; }
+.claim-mark.warn { background:#fff0e8; color:#b85d3e; }
+.home-bottom { background:#f0ebff; border-color:#e3dafa; border-radius:13px; }
+.bottom-icon { color:#7655e8; border-radius:10px; }
+.step-number { background:#f0ebff; color:#7655e8; border-radius:9px; }
+.step-card,.mode-card,.panel,.question-form,.evaluation-card { border-radius:14px; }
+.mode-card { transition:transform .18s,border-color .18s,box-shadow .18s; }
+.mode-card:hover { transform:translateY(-2px); box-shadow:0 10px 24px #33205212; }
+.mode-card.selected { border-color:#a18af5; box-shadow:0 0 0 3px #f0ebff; }
+.mode-card.selected .mode-icon { background:#f0ebff; color:#7655e8; }
+.selected .mode-radio { background:#7655e8; border-color:#7655e8; }
+.mode-icon { border-radius:10px; }
+.question-form textarea { background:#fcfbff; border-color:#e5deef; border-radius:10px; color:#211b32; }
+.question-form textarea:focus { border-color:#9a80f2; box-shadow:0 0 0 4px #f0ebff; }
+.question-form textarea::placeholder { color:#a29aaf; }
+.topbar { background:#fff; border-color:#ebe5f1; }
+.app-footer { border-color:#ebe5f1; }
+.avatar { background:#f0ebff; color:#7655e8; }
+.connection.online>span { background:#7dbb32; }
+.status-pill { border-radius:999px; }
+.claim-details > summary,.source-details > summary { color:#7655e8; }
+.claim-reason { border-left-color:#c6ff5e; background:#f8ffed; border-radius:0 10px 10px 0; }
+.evaluation-notice { background:#f0ebff; border-color:#e3dafa; border-left-color:#7655e8; border-radius:12px; }
+.evaluation-notice strong { color:#4e35a0; }
+.evaluation-field { background:#fcfbff; border-color:#e8e2f0; border-radius:10px; }
+.drawer-backdrop { background:#171426c7; }
+.menu-button { border-color:#e2dbea; background:#fff; border-radius:10px; }
+.results-empty { border-radius:14px; background:#fff; border:1px solid #e8e2f0; }
+.compact-guidance { background:#f4f0ff; border-left-color:#7655e8; color:#625777; border-radius:0 9px 9px 0; }
+@media (prefers-reduced-motion:no-preference) {
+  .button,.mode-card,.nav-item { transition:transform .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease; }
+}
+@media (max-width:540px) {
+  .hero h1 { letter-spacing:-1.5px; }
+  .content { padding-inline:14px; }
+}
