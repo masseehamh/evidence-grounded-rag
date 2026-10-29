@@ -59,3 +59,21 @@ test("keeps NLI and overall confidence separate for deterministic short-answer s
   assert.equal(result.claims[0].confidence, null);
   assert.equal(result.claims[0].support_basis, "answer_span_in_evidence");
 });
+
+test("normalizes conversational backend responses for the dedicated conversation screen", () => {
+  const result = normalizeResult({
+    verification_status: "CONVERSATIONAL",
+    verification_mode: "conversation",
+    original_answer: "Nice try, Bruce!",
+    corrected_answer: "Nice try, Bruce!",
+    corrected_status: "NOT_APPLICABLE",
+    claims: [],
+    sources: [],
+    message: "Evidence verification was not needed."
+  });
+  assert.equal(result.verification_mode, "conversation");
+  assert.equal(result.verification_status, "CONVERSATIONAL");
+  assert.equal(result.corrected_answer, "Nice try, Bruce!");
+  assert.deepEqual(result.claims, []);
+  assert.deepEqual(result.sources, []);
+});
