@@ -647,7 +647,7 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
         ]
     elif mode == "web":
         sources = search_web_evidence(question)
-        evidence = "\\n".join(
+        evidence = "\n".join(
             f"{source['title']}: {source['passage']}" for source in sources
         )
         if not evidence.strip():
