@@ -434,8 +434,11 @@ def looks_like_claim_check(text: str) -> bool:
     """
     value = (text or "").strip()
     low = value.lower()
+    # Recognize natural explicit-verification phrasing, not only the literal
+    # phrase "verify this claim". These requests must outrank casual routing.
     explicit = re.match(
-        r"^(?:verify|fact[- ]?check|check|assess|evaluate)\s+(?:this\s+)?(?:claim|statement|assertion)\s*[:\-]?\s*",
+        r"^(?:please\s+)?(?:verify|fact[- ]?check|fact check|check|assess|evaluate)"
+        r"\s+(?:(?:whether|if|that)\s+|(?:this\s+)?(?:claim|statement|assertion)\s*[:\-]?\s*)",
         low,
     )
     if explicit:
@@ -450,7 +453,8 @@ def looks_like_claim_check(text: str) -> bool:
 def extract_user_claims(text: str) -> list[str]:
     """Return the user's own assertion clauses without generating substitute claims."""
     value = re.sub(
-        r"^(?:verify|fact[- ]?check|check|assess|evaluate)\s+(?:this\s+)?(?:claim|statement|assertion)\s*[:\-]?\s*",
+        r"^(?:please\s+)?(?:verify|fact[- ]?check|fact check|check|assess|evaluate)"
+        r"\s+(?:(?:whether|if|that)\s+|(?:this\s+)?(?:claim|statement|assertion)\s*[:\-]?\s*)",
         "", (text or "").strip(), flags=re.I,
     )
     return split_claims(value)
