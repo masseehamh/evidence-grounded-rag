@@ -147,6 +147,7 @@ function App() {
           <button className={page === "home" ? "nav-item active" : "nav-item"} onClick={() => setPage("home")}><span className="nav-icon">⌂</span> Overview</button>
           <button className={page === "ask" ? "nav-item active" : "nav-item"} onClick={() => setPage("ask")}><span className="nav-icon">＋</span> Ask a question</button>
           <button className={page === "results" ? "nav-item active" : "nav-item"} disabled={!result} onClick={() => setPage("results")}><span className="nav-icon">☷</span> Verification results</button>
+          <button className={page === "evaluation" ? "nav-item active" : "nav-item"} onClick={() => setPage("evaluation")}><span className="nav-icon">⌁</span> Evaluation tests</button>
         </nav>
         <div className="sidebar-bottom">
           <div className="sidebar-note"><span className="note-icon">✳</span><div><strong>Evidence first</strong><p>Every claim should be traceable to a source.</p></div></div>
@@ -164,7 +165,8 @@ function App() {
         </header>
 
         <div className="content">
-          {page === "home" && <HomePage onStart={() => setPage("ask")} />}
+          {page === "home" && <HomePage onStart={() => setPage("ask")} onEvaluation={() => setPage("evaluation")} />}
+          {page === "evaluation" && <EvaluationPage onRunTest={(test) => { setMode("manual"); setShowAdvanced(true); setQuestion(test.question); setEvidence(test.evidence); setError(""); setResult(null); setUsedDemo(false); setPage("ask"); }} />}
           {page === "ask" && (
             <section className="page-section">
               <div className="page-heading">
@@ -215,7 +217,7 @@ function ModeCard({ active, icon, title, desc, onClick, disabled }) {
   </button>;
 }
 
-function HomePage({ onStart }) {
+function HomePage({ onStart, onEvaluation }) {
   const steps = [
     ["01", "Retrieve evidence", "Find relevant passages from pasted text, uploaded documents, or a web search."],
     ["02", "Generate an answer", "Use the retrieved evidence as context for the response."],
@@ -224,7 +226,7 @@ function HomePage({ onStart }) {
   ];
   return <section className="home-page">
     <div className="hero">
-      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> EVIDENCE-BASED RAG</div><h1>Hallucination detection<br /><span>&amp; correction.</span></h1><p className="hero-description">Generate answers from retrieved evidence, check each claim for support or contradiction, and revise responses when the evidence does not justify them.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={() => document.getElementById("workflow-details")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Explore the workflow <span>↓</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div></div>
+      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> EVIDENCE-BASED RAG</div><h1>Hallucination detection<br /><span>&amp; correction.</span></h1><p className="hero-description">Generate answers from retrieved evidence, check each claim for support or contradiction, and revise responses when the evidence does not justify them.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={() => document.getElementById("workflow-details")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Explore the workflow <span>↓</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div><div className="home-quick-links"><button onClick={onEvaluation}>Run a contradiction test <span>→</span></button><span>Use a controlled input to inspect the verifier, not a prewritten sample result.</span></div></div>
       <div className="hero-visual" aria-label="Illustration of evidence checking">
         <div className="visual-top"><span className="visual-dot" /><span className="visual-dot" /><span className="visual-dot" /><span className="visual-title">HOW VERIFICATION WORKS</span><span className="visual-live">WORKFLOW EXAMPLE</span></div>
         <div className="pipeline">
@@ -251,7 +253,21 @@ function HomePage({ onStart }) {
       </div>
       <p className="platform-disclaimer">Research prototype, not a guarantee of truth. Search snippets can be incomplete, models can make mistakes, and important claims should be checked against the original sources.</p>
     </section>
-    <div className="home-bottom"><div><span className="bottom-icon">✳</span><div><strong>Designed for transparency</strong><p>See supported, contradicted, and uncertain claims separately.</p></div></div><button className="button button-primary" onClick={onStart}>Try the workspace <span>→</span></button></div>
+    <div className="home-bottom"><div><span className="bottom-icon">✳</span><div><strong>Designed for transparency</strong><p>See supported, contradicted, and uncertain claims separately.</p></div></div><div className="home-bottom-actions"><button className="button button-ghost" onClick={onEvaluation}>Test verification</button><button className="button button-primary" onClick={onStart}>New verification <span>→</span></button></div></div>
+  </section>;
+}
+
+
+function EvaluationPage({ onRunTest }) {
+  const tests = [
+    { id: "contradiction", label: "Contradicted claim", intent: "Check whether the evidence challenges a stated claim.", question: "Verify this claim: The Eiffel Tower is located in Rome.", evidence: "The Eiffel Tower is located in Paris, France.", expected: "The evidence points to a different location. The verifier should identify the conflict if it recognizes the claim." },
+    { id: "supported", label: "Supported claim", intent: "Check a simple fact directly stated in the evidence.", question: "When was the Eiffel Tower completed?", evidence: "The Eiffel Tower was completed in 1889.", expected: "The year is stated directly in the evidence." },
+    { id: "insufficient", label: "Insufficient evidence", intent: "Check that the system avoids filling in a missing fact.", question: "Verify this claim: The Eiffel Tower opened to the public in 1900.", evidence: "The Eiffel Tower was completed in 1889.", expected: "The provided passage gives a completion year, not a public opening date." }
+  ];
+  return <section className="page-section evaluation-page">
+    <div className="page-heading"><div><div className="eyebrow">EVALUATION WORKSPACE</div><h1>Test the verification pipeline.</h1><p>Run controlled inputs through the live backend to inspect support, contradiction, and uncertainty. These are test prompts—not precomputed results.</p></div></div>
+    <div className="evaluation-notice"><strong>How to use these tests</strong><p>Select a case to load its question and evidence into the workspace. Then run verification and compare the actual report with the test intent. The model may fail a case; that is useful evaluation data, not a result to hide.</p></div>
+    <div className="evaluation-grid">{tests.map((test, index) => <article className="evaluation-card panel" key={test.id}><div className="evaluation-card-top"><span className="step-number">0{index+1}</span><span className="evaluation-kind">CONTROLLED INPUT</span></div><h2>{test.label}</h2><p>{test.intent}</p><div className="evaluation-field"><span>QUESTION</span><p>{test.question}</p></div><div className="evaluation-field"><span>EVIDENCE</span><p>{test.evidence}</p></div><div className="evaluation-expectation"><strong>Test intent</strong><p>{test.expected}</p></div><button className="button button-primary" onClick={() => onRunTest(test)}>Load test in workspace <span>→</span></button></article>)}</div>
   </section>;
 }
 
