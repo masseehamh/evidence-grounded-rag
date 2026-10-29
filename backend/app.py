@@ -362,6 +362,98 @@ def verify_claims(question: str, answer: str, evidence: str) -> list[dict[str, A
     return results
 
 
+
+def looks_like_claim_check(text: str) -> bool:
+    """Recognize explicit claim-check requests and declarative assertions.
+
+    Questions beginning with interrogatives remain answer-generation requests;
+    imperative verification prompts and common first-person assertions are checked
+    as written instead of being rewritten into a subject-search question.
+    """
+    value = (text or "").strip()
+    low = value.lower()
+    explicit = re.match(
+        r"^(?:verify|fact[- ]?check|check|assess|evaluate)\s+(?:this\s+)?(?:claim|statement|assertion)\s*[:\-]?\s*",
+        low,
+    )
+    if explicit:
+        return True
+    if re.match(r"^(?:i am|i'm|i can|i have|i was|i will|i always|i never)\b", low):
+        return True
+    # Declarative first-person claims should not be transformed into a biography
+    # or a general subject question. Ordinary interrogative questions are excluded.
+    return False
+
+
+def extract_user_claims(text: str) -> list[str]:
+    """Return the user's own assertion clauses without generating substitute claims."""
+    value = re.sub(
+        r"^(?:verify|fact[- ]?check|check|assess|evaluate)\s+(?:this\s+)?(?:claim|statement|assertion)\s*[:\-]?\s*",
+        "", (text or "").strip(), flags=re.I,
+    )
+    return split_claims(value)
+
+
+def verify_user_claims(question: str, evidence: str) -> list[dict[str, Any]]:
+    """Verify the exact user-provided assertions, rather than claims from a generated answer."""
+    claims = extract_user_claims(question)
+    if not claims:
+        return []
+    prompt = {
+        "user_input": question,
+        "claims_to_check": claims,
+        "evidence": evidence[:MAX_CONTEXT_CHARS],
+        "task": (
+            "Evaluate ONLY the supplied user claims against the evidence. Preserve each claim's "
+            "meaning and subject. Do not rewrite claims into facts about a related person, character, "
+            "place, or topic. Topical relevance is not support. A passage about a fictional character "
+            "does not establish that the user is that character or shares fictional abilities. "
+            "SUPPORTED requires direct evidence for the exact proposition. CONTRADICTED requires "
+            "direct conflicting evidence. Otherwise use NOT_ENOUGH_EVIDENCE. Return JSON only: "
+            '{"claims":[{"claim":"exact claim text","status":"SUPPORTED|CONTRADICTED|NOT_ENOUGH_EVIDENCE",'
+            '"evidence":"exact relevant excerpt or empty string","reason":"concise reason"}]}'
+        ),
+    }
+    raw = cloudflare_chat([
+        {"role": "system", "content": (
+            "You are a conservative claim verifier. Do not answer the user's question or search for "
+            "related facts. Assess the exact propositions supplied. Evidence must directly bear on "
+            "the proposition; subject-name overlap is insufficient. Never infer personal identity, "
+            "capabilities, health status, or private facts from unrelated web pages. Return valid JSON only."
+        )},
+        {"role": "user", "content": json.dumps(prompt, ensure_ascii=False)},
+    ], max_tokens=650)
+    parsed = parse_json_object(raw)
+    model_claims = parsed.get("claims")
+    if not isinstance(model_claims, list):
+        raise RuntimeError("The claim verifier did not return a claims list.")
+    results: list[dict[str, Any]] = []
+    for i, claim in enumerate(claims):
+        item = model_claims[i] if i < len(model_claims) and isinstance(model_claims[i], dict) else {}
+        status = str(item.get("status", "NOT_ENOUGH_EVIDENCE")).upper().replace(" ", "_")
+        if status not in {"SUPPORTED", "CONTRADICTED", "NOT_ENOUGH_EVIDENCE"}:
+            status = "NOT_ENOUGH_EVIDENCE"
+        excerpt = str(item.get("evidence") or "").strip()
+        # Do not attach a merely similar passage as if it were evidence.
+        if excerpt and excerpt not in evidence:
+            excerpt = ""
+        reason = str(item.get("reason") or "").strip()
+        if status == "SUPPORTED" and not excerpt:
+            status = "NOT_ENOUGH_EVIDENCE"
+            reason = "No exact evidence passage was returned to substantiate this claim."
+        results.append({
+            "claim": claim, "status": status, "evidence": excerpt,
+            "reason": reason or "The available evidence does not establish this claim directly.",
+            "nli_label": "instruction_model_verifier", "confidence": None,
+            "nli_confidence": None, "support_basis": "instruction_model_verifier",
+            "consistency": {"status": "NOT_CHECKED", "details": "No independent NLI classifier is configured.",
+                            "numbers_consistent": None, "number_reason": "Not independently checked.",
+                            "entities_consistent": None, "entity_reason": "Assessed by instruction model only.",
+                            "support_basis": "instruction_model_verifier"},
+        })
+    return results
+
+
 def best_evidence_for_claim(claim: str, evidence: str) -> str:
     ranked = retrieve_passages(claim, evidence, top_k=1)
     return ranked[0][0] if ranked else ""
@@ -424,12 +516,17 @@ def run_rag(
 ) -> dict[str, Any]:
     # The override is used only by the fixed, token-protected demonstration route.
     # Normal /api/ask requests never accept a caller-supplied initial answer.
-    original_answer = (
-        initial_answer_override
-        if initial_answer_override is not None
-        else generate_answer(question, evidence)
-    )
-    claims = verify_claims(question, original_answer, evidence)
+    claim_check_mode = initial_answer_override is None and looks_like_claim_check(question)
+    if initial_answer_override is not None:
+        original_answer = initial_answer_override
+        claims = verify_claims(question, original_answer, evidence)
+    elif claim_check_mode:
+        # Preserve the user's actual assertion as the thing being evaluated.
+        original_answer = question
+        claims = verify_user_claims(question, evidence)
+    else:
+        original_answer = generate_answer(question, evidence)
+        claims = verify_claims(question, original_answer, evidence)
 
     supported = [
         item for item in claims
