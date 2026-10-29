@@ -267,3 +267,31 @@ button, input, textarea, select { font-size: inherit; }
 .form-footer{align-items:flex-start;flex-direction:column;gap:14px}.form-footer .button{width:100%;justify-content:center}
 }
 @media(prefers-reduced-motion:reduce){.sidebar{transition:none}}
+
+
+/* Report hierarchy: verdict, exact claim, decisive evidence, then reason. */
+.claim-reason { margin: 12px 0 0; padding: 12px 14px; border-left: 3px solid #c5d2c2; background: #f6f8f3; border-radius: 0 6px 6px 0; }
+.claim-reason strong { color: #334b3b; font-size: 12px; }
+.claim-reason p { margin: 5px 0 0; color: #526359; font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }
+.claim-details, .source-details { margin-top: 12px; }
+.claim-details > summary, .source-details > summary { cursor: pointer; color: #496653; font-size: 12px; font-weight: 650; padding: 7px 0; }
+.claim-details[open] > summary, .source-details[open] > summary { margin-bottom: 8px; }
+.claim-metadata small { display: block; line-height: 1.6; }
+@media (max-width: 800px) {
+  .app-shell { display: block; }
+  .main-area { width: 100%; min-width: 0; }
+  .sidebar { max-width: 85vw; }
+  .drawer-backdrop { cursor: pointer; }
+  .menu-button { cursor: pointer; }
+}
+@media (max-width: 540px) {
+  .result-summary { padding: 16px; }
+  .claims-heading { gap: 10px; align-items: flex-start; }
+  .claim-card-top { gap: 10px; }
+  .claim-text, .claim-evidence p, .claim-reason p, .answer-body { overflow-wrap: anywhere; }
+  .source-card { min-width: 0; }
+  .source-card > div { min-width: 0; overflow-wrap: anywhere; }
+  .source-card a { overflow-wrap: anywhere; word-break: break-word; }
+  .result-actions { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .result-actions .button { width: 100%; justify-content: center; }
+}
