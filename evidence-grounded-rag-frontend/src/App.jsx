@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import { API_BASE_URL, isApiConfigured, checkHealth, uploadDocument, askBackend, normalizeResult, buildAskPayload, validateUploadFile } from "./api.js";
 import { demoResult } from "./demoData.js";
 
+function AnimatedText({ text, className = "" }) {
+  return <span className={`animated-text ${className}`} aria-label={text}>{Array.from(text).map((letter, index) => <span className="type-letter" key={`${text}-${index}`} style={{ "--letter-index": index }}>{letter === " " ? "\\u00a0" : letter}</span>)}</span>;
+}
+
 function StatusPill({ status }) {
   const key = String(status || "UNKNOWN").toUpperCase().replaceAll(" ", "_");
   const label = key.replaceAll("_", " ");
@@ -159,7 +163,7 @@ function App() {
           <button className={page === "behind" ? "nav-item active" : "nav-item"} onClick={() => navigate("behind")}><span className="nav-icon">✳</span> Curious? Behind the scenes</button>
         </nav>
         <div className="sidebar-bottom">
-          <div className="sidebar-note"><span className="note-icon">✳</span><div><strong>Evidence first</strong><p>Every claim should be traceable to a source.</p></div></div>
+          <div className="sidebar-note"><span className="note-icon">◎</span><div><strong>Evidence first</strong><p>Every claim should be traceable to a source.</p></div></div>
           <div className="sidebar-foot">AI REALITY CHECK<br /><span>HALLUCINATION DETECTION &amp; CORRECTION</span></div>
         </div>
       </aside>
@@ -187,7 +191,7 @@ function App() {
           {page === "ask" && (
             <section className="page-section">
               <div className="page-heading">
-                <div><div className="eyebrow">LET’S CHECK SOMETHING</div><h1>Ask away.</h1><p>Got a claim? Let’s see if the evidence backs it up.</p></div>
+                <div><div className="eyebrow">LET’S CHECK SOMETHING</div><h1><AnimatedText text="Ask away." /></h1><p>Got a claim? Let’s see if the evidence backs it up.</p></div>
                 
               </div>
               <div className="mode-grid">
@@ -250,7 +254,7 @@ function HomePage({ onStart, onEvaluation, onBehind }) {
   ];
   return <section className="home-page">
     <div className="hero">
-      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> SAY HI TO HALLY</div><h1 className="hero-title"><span className="type-line">{Array.from("Hallucination detection").map((letter, i) => <span className="type-letter" key={`a-${i}`} style={{ "--letter-index": i }}>{letter === " " ? "\u00a0" : letter}</span>)}</span><br /><span className="type-line accent-line">{Array.from("& correction.").map((letter, i) => <span className="type-letter" key={`b-${i}`} style={{ "--letter-index": i + 23 }}>{letter === " " ? "\u00a0" : letter}</span>)}</span></h1><p className="hero-pun">In AI, not humans.</p><p className="hero-description">AI can make things up with a straight face. Hally helps you catch that, check the receipts, and see what actually adds up.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={onBehind}>Curious how it works? <span>→</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div><div className="home-quick-links"><button onClick={onEvaluation}>Run a contradiction test <span>→</span></button><span>Try a tricky claim and see what Hally spots.</span></div></div>
+      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> <AnimatedText text="SAY HI TO HALLY" /></div><h1 className="hero-title"><span className="type-line">{Array.from("Hallucination detection").map((letter, i) => <span className="type-letter" key={`a-${i}`} style={{ "--letter-index": i }}>{letter === " " ? "\u00a0" : letter}</span>)}</span><br /><span className="type-line accent-line">{Array.from("& correction.").map((letter, i) => <span className="type-letter" key={`b-${i}`} style={{ "--letter-index": i + 23 }}>{letter === " " ? "\u00a0" : letter}</span>)}</span></h1><p className="hero-pun">In AI, not humans.</p><p className="hero-description">AI can make things up with a straight face. Hally helps you catch that, check the receipts, and see what actually adds up.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={onBehind}>Curious how it works? <span>→</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div><div className="home-quick-links"><button onClick={onEvaluation}>Run a contradiction test <span>→</span></button><span>Try a tricky claim and see what Hally spots.</span></div></div>
       <div className="hero-visual" aria-label="Animated illustration of Hally checking an AI answer"><div className="hallucination-orbit" aria-hidden="true"><span className="orbit-ring ring-one"></span><span className="orbit-ring ring-two"></span><span className="orbit-spark">?</span><span className="orbit-check">✓</span><span className="orbit-dot"></span></div>
         <div className="visual-top"><span className="visual-dot" /><span className="visual-dot" /><span className="visual-dot" /><span className="visual-title">HOW VERIFICATION WORKS</span><span className="visual-live">WORKFLOW EXAMPLE</span></div>
         <div className="pipeline">
@@ -286,7 +290,7 @@ function HomePage({ onStart, onEvaluation, onBehind }) {
 function BehindScenesPage({ onStart, onEvaluation }) {
   return <section className="page-section behind-page">
     <div className="page-heading">
-      <div><div className="eyebrow">THE CURIOUS CORNER</div><h1>Curious about the behind-the-scenes?</h1><p>No deep tech dive needed. Here’s the vibe, step by step.</p></div>
+      <div><div className="eyebrow">THE CURIOUS CORNER</div><h1><AnimatedText text="Curious about the behind-the-scenes?" /></h1><p>No deep tech dive needed. Here’s the vibe, step by step.</p></div>
     </div>
     <div className="behind-intro panel"><div className="behind-intro-kicker">THE SHORT VERSION</div><h2>Good answers show their work.</h2><p>AI can get a detail wrong even when the rest sounds convincing. Hally checks the answer against the evidence, points out what lines up, and flags what needs a closer look.</p><div className="behind-intro-tags"><span>Evidence first</span><span>Claims checked</span><span>Clear reasons</span></div></div>
     <div className="behind-grid">
@@ -307,7 +311,7 @@ function EvaluationPage({ onRunTest }) {
     { id: "insufficient", label: "Insufficient evidence", intent: "Check that the system avoids filling in a missing fact.", question: "Verify this claim: The Eiffel Tower opened to the public in 1900.", evidence: "The Eiffel Tower was completed in 1889.", expected: "The provided passage gives a completion year, not a public opening date." }
   ];
   return <section className="page-section evaluation-page">
-    <div className="page-heading"><div><div className="eyebrow">TRY A LITTLE EXPERIMENT</div><h1>Let’s test Hally.</h1><p>Pick a mini challenge and see if Hally catches what’s off. The results are real, not staged.</p></div></div>
+    <div className="page-heading"><div><div className="eyebrow">TRY A LITTLE EXPERIMENT</div><h1><AnimatedText text="Let’s test Hally." /></h1><p>Pick a mini challenge and see if Hally catches what’s off. The results are real, not staged.</p></div></div>
     <div className="evaluation-notice"><strong>How to use these tests</strong><p>Select a case to load its question and evidence into the workspace. Then run verification and compare the actual report with the test intent. The model may fail a case; that is useful evaluation data, not a result to hide.</p></div>
     <div className="evaluation-grid">{tests.map((test, index) => <article className="evaluation-card panel" key={test.id}><div className="evaluation-card-top"><span className="step-number">0{index+1}</span><span className="evaluation-kind">CONTROLLED INPUT</span></div><h2>{test.label}</h2><p>{test.intent}</p><div className="evaluation-field"><span>QUESTION</span><p>{test.question}</p></div><div className="evaluation-field"><span>EVIDENCE</span><p>{test.evidence}</p></div><div className="evaluation-expectation"><strong>Test intent</strong><p>{test.expected}</p></div><button className="button button-primary" onClick={() => onRunTest(test)}>Load test in workspace <span>→</span></button></article>)}</div>
   </section>;
