@@ -445,7 +445,7 @@ def verify_user_claims(question: str, evidence: str) -> list[dict[str, Any]]:
         # first-person identity or abilities. Keep such personal assertions unresolved
         # unless the verifier can cite the exact proposition itself (not merely a related topic).
         first_person_assertion = bool(re.match(
-            r"^\\s*(?:verify this claim:\\s*)?(?:i\\s+(?:am|\u2019m|'m|can|could|have|had|will|was|were|do|did)\\b)",
+            r"^\s*(?:verify this claim:\s*)?(?:i\s+(?:am|’m|'m|can|could|have|had|will|was|were|do|did)\b)",
             claim, re.IGNORECASE
         ))
         if first_person_assertion and status == "SUPPORTED" and claim.strip() not in evidence:
