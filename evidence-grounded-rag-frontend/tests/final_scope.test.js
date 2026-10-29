@@ -99,10 +99,10 @@ test("mobile navigation closes on Escape and responsive report content can wrap"
 
 
 test("the homepage uses friendly language and interactive workflow steps", () => {
-  assert.match(appSource, /friendly fact-checking sidekick/);
-  assert.match(appSource, /AI can sound sure of itself and still get things wrong/);
+  assert.match(appSource, /AI can make things up with a straight face/);
+  assert.match(appSource, /AI can make things up with a straight face/);
   assert.match(appSource, /className="step-card step-interactive"/);
   assert.match(appSource, /Tap to see what happens/);
-  assert.match(appSource, /No jargon quiz required/);
-  assert.match(appSource, /Here’s what we found/);
+  assert.match(appSource, /Got a claim\? Let’s see if the evidence backs it up/);
+  assert.match(appSource, /Here’s the tea/);
 });
