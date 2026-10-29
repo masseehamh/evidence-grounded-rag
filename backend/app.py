@@ -796,6 +796,8 @@ def search_web_evidence(question: str, max_results: int = 15) -> list[dict[str, 
             "trust_level": "allowlisted_domain_unverified_page",
             "passage": passage,
         })
+    # Prefer official/primary sources, then scholarly publishers, then general news.
+    sources.sort(key=lambda source: source_priority(source["domain"]))
     return sources
 
 
