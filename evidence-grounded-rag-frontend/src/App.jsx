@@ -150,7 +150,7 @@ function App() {
         </nav>
         <div className="sidebar-bottom">
           <div className="sidebar-note"><span className="note-icon">✳</span><div><strong>Evidence first</strong><p>Every claim should be traceable to a source.</p></div></div>
-          <div className="sidebar-foot">COLLEGE MINI PROJECT<br /><span>RAG · NLI · FACT CHECKING</span></div>
+          <div className="sidebar-foot">EVIDENCE-BASED RAG<br /><span>HALLUCINATION DETECTION &amp; CORRECTION</span></div>
         </div>
       </aside>
 
@@ -183,18 +183,10 @@ function App() {
                 {showAdvanced && <ModeCard active={mode === "manual"} icon="≡" title="Manual evidence" desc="Paste an exact excerpt and verify only against that text." onClick={() => selectMode("manual")} />}
               </div>
               <form className="question-form panel" onSubmit={handleSubmit}>
-                <div className="usage-guidance">
-                  <div className="guidance-heading"><span>✓</span><div><strong>For a useful verification report</strong><small>Three checks that improve the quality of the result</small></div></div>
-                  <ul>
-                    <li><strong>Ask one answerable question.</strong> Include a date, place, entity, or comparison when it changes the answer.</li>
-                    <li><strong>Make the evidence match the question.</strong> For time-sensitive topics, check publication dates and open the original source links.</li>
-                    <li><strong>Read uncertainty as a result.</strong> “Not enough evidence” means the retrieved material did not establish the claim—not that the claim is necessarily false.</li>
-                  </ul>
-                </div>
-                {mode === "web" && <div className="web-mode-note"><span>⌕</span><div><strong>Search the web for evidence</strong><p>Verity retrieves online snippets, then generates, verifies, and corrects an answer against the retrieved evidence. Check the linked sources in the report.</p></div></div>}
-                <div className="form-title"><span className="step-number">01</span><div><h2>Your question</h2><p>Be specific about what you want the evidence to establish.</p></div></div>
+                <div className="form-title"><span className="step-number">01</span><div><h2>Your question</h2><p>State the claim or question you want the evidence to check.</p></div></div>
                 <label htmlFor="question">Question</label>
-                <textarea id="question" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="e.g. What date did the policy take effect, and which source confirms it?" rows={3} />
+                <textarea id="question" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask a factual question or enter a claim to check…" rows={3} />
+                {mode === "web" && <div className="compact-guidance">Web search retrieves online snippets. Review the original source links before relying on a result.</div>}
                 {mode === "manual" && <>
                   <div className="field-row"><label htmlFor="evidence">Evidence text</label><span className="field-hint">Paste excerpts, notes, or source text</span></div>
                   <textarea id="evidence" value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Paste the relevant source passage. Keep surrounding context needed to interpret it." rows={7} />
@@ -203,6 +195,7 @@ function App() {
                   <div className="upload-symbol">⇧</div><div><strong>{file ? file.name : "Choose a .txt document"}</strong><p>Plain-text .txt file, up to 2 MB. Upload only material you are authorized to share; ask a focused question that the file can answer.</p><label className="button button-ghost file-button" htmlFor="document-file">Browse files</label><input id="document-file" type="file" accept=".txt,text/plain" onChange={handleFileChange} /></div>
                   {documentId && <span className="upload-ready"><span aria-hidden="true">✓</span> Uploaded — ready for questions</span>}
                 </div>}
+                <div className="compact-guidance general-guidance">Evidence can support a claim, contradict it, or leave it unresolved. “Not enough evidence” does not mean a claim is false.</div>
                 {error && <div className="error-message" role="alert"><strong>Could not process request</strong><span>{error}</span></div>}
                 <div className="form-footer"><span className="privacy-note">⌑ Your input is sent only to the configured backend.</span><button className="button button-primary" type="submit" disabled={busy}>{busy ? <><span className="spinner" /> {uploading ? "Uploading document…" : "Processing…"}</> : <>Run verification <span>→</span></>}</button></div>
               </form>
@@ -210,7 +203,7 @@ function App() {
           )}
           {page === "results" && result && <ResultsPage result={result} usedDemo={usedDemo} onAskAgain={() => setPage(returnPage)} backLabel="← Back to question" />}
         </div>
-        <footer className="app-footer"><span>Verity RAG <span className="footer-dot">·</span> Evidence-grounded answer verification</span><span>Prototype interface <span className="footer-dot">·</span> Backend: {isApiConfigured ? API_BASE_URL : "not configured"}</span></footer>
+        <footer className="app-footer"><span>Verity RAG <span className="footer-dot">·</span> Evidence-based answer verification</span><span>{isApiConfigured ? `API: ${API_BASE_URL}` : "API not configured"}</span></footer>
       </main>
     </div>
   );
@@ -226,27 +219,27 @@ function HomePage({ onStart }) {
   const steps = [
     ["01", "Retrieve evidence", "Find relevant passages from pasted text, uploaded documents, or a web search."],
     ["02", "Generate an answer", "Use the retrieved evidence as context for the response."],
-    ["03", "Verify each claim", "Check claims against evidence using NLI and consistency signals."],
+    ["03", "Verify each claim", "An instruction-model verifier compares claims with retrieved evidence; numeric checks flag mismatched values."],
     ["04", "Correct the answer", "Revise or remove unsupported claims and show the evidence trail."]
   ];
   return <section className="home-page">
     <div className="hero">
-      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> TRUSTWORTHY AI RESEARCH</div><h1>Answers should be<br /><span>backed by evidence.</span></h1><p className="hero-description">A transparent RAG workflow that checks claims, highlights uncertainty, and corrects responses when the evidence doesn't support them.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={onStart}>Explore the workflow <span>↗</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div></div>
+      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> TRUSTWORTHY AI RESEARCH</div><h1>Answers should be<br /><span>backed by evidence.</span></h1><p className="hero-description">A transparent RAG workflow that checks claims, highlights uncertainty, and corrects responses when the evidence doesn't support them.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={() => document.getElementById("workflow-details")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Explore the workflow <span>↓</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div></div>
       <div className="hero-visual" aria-label="Illustration of evidence checking">
-        <div className="visual-top"><span className="visual-dot" /><span className="visual-dot" /><span className="visual-dot" /><span className="visual-title">VERIFICATION PIPELINE</span><span className="visual-live">● READY</span></div>
+        <div className="visual-top"><span className="visual-dot" /><span className="visual-dot" /><span className="visual-dot" /><span className="visual-title">HOW VERIFICATION WORKS</span><span className="visual-live">WORKFLOW EXAMPLE</span></div>
         <div className="pipeline">
-          <div className="pipeline-node"><span className="pipeline-icon">⌕</span><div><strong>Evidence retrieved</strong><small>3 relevant passages</small></div><StatusPill status="SUPPORTED" /></div>
+          <div className="pipeline-node"><span className="pipeline-icon">⌕</span><div><strong>Evidence retrieved</strong><small>Relevant passages from the selected source</small></div></div>
           <div className="pipeline-connector" />
           <div className="pipeline-node"><span className="pipeline-icon">▤</span><div><strong>Claims extracted</strong><small>Sentence-level analysis</small></div><span className="count-badge">03</span></div>
-          <div className="claim-mini"><span className="claim-mark good">✓</span><div><strong>Claim 01</strong><small>Entailed by evidence</small></div><span className="mini-confidence">97%</span></div>
-          <div className="claim-mini"><span className="claim-mark warn">!</span><div><strong>Claim 02</strong><small>Evidence insufficient</small></div><span className="mini-confidence">89%</span></div>
+          <div className="claim-mini"><span className="claim-mark good">✓</span><div><strong>Claim 01</strong><small>Entailed by evidence</small></div></div>
+          <div className="claim-mini"><span className="claim-mark warn">!</span><div><strong>Claim 02</strong><small>Evidence insufficient</small></div></div>
           <div className="pipeline-connector" />
           <div className="pipeline-node corrected"><span className="pipeline-icon">✳</span><div><strong>Corrected response</strong><small>Unsupported detail removed</small></div><span className="done-icon">✓</span></div>
         </div>
         <div className="visual-caption"><span className="caption-line" /> EXPLAINABLE BY DESIGN</div>
       </div>
     </div>
-    <div className="section-intro"><div><div className="eyebrow">THE WORKFLOW</div><h2>From question to verified answer.</h2></div><p>Make each step visible, so evaluators can see not just what the system answered, but why.</p></div>
+    <div id="workflow-details" className="section-intro"><div><div className="eyebrow">THE WORKFLOW</div><h2>From question to verified answer.</h2></div><p>Make each step visible, so evaluators can see not just what the system answered, but why.</p></div>
     <div className="steps-grid">{steps.map(([number, title, desc]) => <article className="step-card" key={number}><span className="step-number">{number}</span><h3>{title}</h3><p>{desc}</p></article>)}</div>
     <section className="platform-section">
       <div className="section-intro"><div><div className="eyebrow">ABOUT VERITY RAG</div><h2>More than a fluent answer.</h2></div><p>Verity RAG is an evidence-grounded question-answering prototype built to make AI answers easier to inspect, challenge, and trust responsibly.</p></div>
@@ -286,8 +279,8 @@ function ResultsPage({ result, usedDemo, onAskAgain, backLabel = "← Back to qu
       <div className="claim-card-top"><div className="claim-number">{String(index + 1).padStart(2, "0")}</div><div className="claim-main"><div className="claim-label">EXTRACTED CLAIM</div><p className="claim-text">{claim.claim}</p></div><StatusPill status={claim.status} /></div>
       <div className="claim-evidence"><div className="evidence-heading"><span>▤</span> Supporting evidence</div><p>{claim.evidence || "No supporting evidence was returned by the backend."}</p></div>
       <div className="claim-metadata">
-        <div><span className="metadata-label">NLI VERIFICATION</span><strong>{claim.nli_label || "Not available"}</strong>{claim.nli_confidence !== null && claim.nli_confidence !== undefined && <small>NLI score: {Math.round(Number(claim.nli_confidence))}%</small>}</div>
-        <div><span className="metadata-label">OVERALL CONFIDENCE</span><strong>{claim.confidence === null || claim.confidence === undefined ? (claim.support_basis === "answer_span_in_evidence" ? "Grounded by evidence checks" : "Not available") : `${Math.round(Number(claim.confidence))}%`}</strong>{claim.confidence !== null && claim.confidence !== undefined && <div className="confidence-track"><span style={{ width: `${Math.max(0, Math.min(100, Number(claim.confidence)))}%` }} /></div>}{claim.support_basis && <small>Support basis: {claim.support_basis === "answer_span_in_evidence" ? "answer appears in question-relevant evidence" : "NLI entailment"}</small>}</div>
+        <div><span className="metadata-label">VERIFICATION METHOD</span><strong>{claim.support_basis === "instruction_model_verifier" || claim.nli_label === "instruction_model_verifier" ? "Instruction-model evidence review" : claim.nli_label || "Not reported"}</strong><small>This deployment uses an instruction model to assess claim–evidence support; it does not report a separate trained NLI classifier.</small></div>
+        <div><span className="metadata-label">OVERALL CONFIDENCE</span><strong>{claim.confidence === null || claim.confidence === undefined ? (claim.support_basis === "answer_span_in_evidence" ? "Grounded by evidence checks" : "Not available") : `${Math.round(Number(claim.confidence))}%`}</strong>{claim.confidence !== null && claim.confidence !== undefined && <div className="confidence-track"><span style={{ width: `${Math.max(0, Math.min(100, Number(claim.confidence)))}%` }} /></div>}{claim.support_basis && <small>Support basis: {claim.support_basis === "answer_span_in_evidence" ? "answer appears in question-relevant evidence" : claim.support_basis === "instruction_model_verifier" ? "instruction-model evidence review" : "method not reported"}</small>}</div>
         <div><span className="metadata-label">NUMBER / ENTITY CHECK</span><strong>{claim.consistency?.status || "Not available"}</strong><small>{claim.consistency?.details || claim.consistency?.message || "No consistency details returned."}</small></div>
       </div>
     </article>) : <div className="empty-state panel">{insufficient
