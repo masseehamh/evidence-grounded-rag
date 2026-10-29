@@ -528,6 +528,33 @@ def run_rag(
         original_answer = generate_answer(question, evidence)
         claims = verify_claims(question, original_answer, evidence)
 
+    if claim_check_mode:
+        statuses = {item["status"] for item in claims}
+        if statuses == {"SUPPORTED"}:
+            corrected_answer = "The supplied evidence directly supports the claim(s) checked."
+            corrected_status = "SUPPORTED"
+        elif "CONTRADICTED" in statuses:
+            corrected_answer = "At least one claim conflicts with the supplied evidence. Review the claim-level findings below."
+            corrected_status = "CONTRADICTED"
+        else:
+            corrected_answer = "The supplied evidence does not establish at least one claim. Treat it as unverified, not as proven false."
+            corrected_status = "NOT_ENOUGH_EVIDENCE"
+        return {
+            "verification_status": summarize_status(claims),
+            "original_answer": question,
+            "corrected_answer": corrected_answer,
+            "corrected_status": corrected_status,
+            "corrected_evidence": " ".join(dict.fromkeys(item["evidence"] for item in claims if item.get("evidence"))),
+            "claims": claims,
+            "removed_claims": [
+                {"claim": item["claim"], "status": item["status"], "reason": item.get("reason", ""), "evidence": item.get("evidence", "")}
+                for item in claims if item["status"] != "SUPPORTED"
+            ],
+            "correction_attempted": False,
+            "sources": [],
+            "verification_mode": "user_claims",
+        }
+
     supported = [
         item for item in claims
         if item["status"] == "SUPPORTED"
