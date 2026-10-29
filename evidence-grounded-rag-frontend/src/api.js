@@ -165,6 +165,7 @@ export function normalizeResult(raw) {
   })) : [];
   return {
     verification_status: raw.verification_status ?? raw.overall_status ?? "STATUS_UNAVAILABLE",
+    verification_mode: raw.verification_mode ?? null,
     message: raw.message ?? "",
     original_answer: raw.original_answer ?? raw.generated_answer ?? "",
     corrected_answer: raw.corrected_answer ?? raw.final_answer ?? "",
