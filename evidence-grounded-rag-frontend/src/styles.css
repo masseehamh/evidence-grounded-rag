@@ -599,3 +599,85 @@ body {
   .step-interactive > p { animation: none; }
   .step-expand { transition: none; }
 }
+
+
+/* Hally art direction: quiet cream, ink, dusty lavender, and muted sage. */
+:root { --navy:#272431; --ink:#292632; --muted:#77727d; --line:#e7e2e8; --teal:#82738e; --teal-soft:#f0ecf2; --blue:#82738e; }
+body { background:#f8f6f3; color:#292632; }
+.sidebar { background:#292632; color:#f8f6f3; }
+.brand-mark { background:#d9d0df; color:#292632; transform:none; border-radius:12px; }
+.nav-item { color:#c8c2ce; }
+.nav-item:hover,.nav-item.active { background:#393442; color:#fff; }
+.nav-item.active { box-shadow:inset 3px 0 #b8c9b3; }
+.sidebar-note { background:#302d39; border-color:#45404d; }
+.note-icon,.eyebrow-line { color:#b8c9b3; }
+.sidebar-foot,.sidebar-foot span { color:#aaa3b0; }
+.topbar { background:#fdfbf8; border-color:#e7e2e8; backdrop-filter:blur(12px); }
+body { background:radial-gradient(ellipse at 80% 0%,#eee7f0 0,transparent 28rem),#f8f6f3; }
+.hero h1 span { color:#82738e; }
+.hero h1 span::after { background:#dfe7d8; height:7px; }
+.eyebrow { color:#82738e; }
+.button-primary { background:#82738e; color:#fff; box-shadow:0 3px 0 #d8d1dc; }
+.button-primary:hover:not(:disabled) { background:#70617c; box-shadow:0 4px 0 #d8d1dc; }
+.button-ghost { border:1px solid #d8d1dc; background:#fdfbf8; color:#37323e; }
+.button-ghost:hover { border-color:#a99bb2; background:#f0ecf2; }
+.hero-visual { border:1px solid #ded7e0; border-radius:20px; background:#fdfbf8; box-shadow:0 12px 35px #2926320d; transform:none; }
+.hero-visual:hover { transform:translateY(-2px); box-shadow:0 16px 38px #29263212; }
+.pipeline-node { background:#f8f6f3; border-color:#e7e2e8; }
+.pipeline-icon { background:#f0ecf2; color:#82738e; }
+.pipeline-node.corrected { background:#eff3eb; border-color:#dfe7d8; }
+.pipeline-node.corrected .pipeline-icon { background:#dfe7d8; color:#475944; }
+.claim-mini { background:#f5f1f5; border-left-color:#a99bb2; }
+.claim-mark.good { background:#dfe7d8; color:#475944; }
+.claim-mark.warn { background:#f0e5e7; color:#8d5660; }
+.step-card { border:1px solid #e4dee6; background:#fdfbf8; box-shadow:0 4px 14px #29263208; }
+.step-card:hover { transform:translateY(-2px); box-shadow:0 8px 20px #29263210; }
+.step-number { background:#e9e1ec; color:#65566e; }
+.mode-card { background:#fdfbf8; border-color:#e4dee6; }
+.mode-card:hover { border-color:#b7a9bf; box-shadow:0 5px 15px #2926320b; transform:translateY(-2px); }
+.mode-card.selected { border:1.5px solid #9d8aa8; box-shadow:0 0 0 3px #f0ecf2; }
+.mode-icon { background:#f0ecf2; color:#82738e; }
+.mode-card.selected .mode-icon,.selected .mode-radio { background:#82738e; color:white; }
+.panel,.question-form,.evaluation-card { border-color:#e7e2e8; box-shadow:0 5px 20px #29263208; }
+.question-form { background:#fdfbf8; }
+.question-form textarea,.evaluation-field { background:#f8f6f3; border-color:#e2dce5; color:#292632; }
+.question-form textarea:focus { border-color:#9d8aa8; box-shadow:0 0 0 3px #f0ecf2; }
+.home-bottom { background:#eeebf0; border-color:#e1d9e5; color:#292632; box-shadow:none; }
+.home-bottom p { color:#68616f; }
+.bottom-icon { background:#dfe7d8; color:#475944; }
+.avatar { background:#e9e1ec; color:#65566e; }
+.claim-details > summary,.source-details > summary { color:#71617d; }
+.claim-reason { border-left:3px solid #b8c9b3; background:#f2f5ef; }
+.evaluation-notice { background:#f0ecf2; border-color:#e4dce8; border-left-color:#82738e; }
+.evaluation-notice strong { color:#65566e; }
+.connection.online>span { background:#8ca584; }
+.human-intro { background:transparent; border:0; padding:0; color:#6e6873; }
+.hero-pun { margin:12px 0 8px; color:#70617c; font-size:13px; font-weight:700; letter-spacing:.01em; }
+.type-line { display:inline-flex; flex-wrap:wrap; }
+.type-letter { display:inline-block; opacity:0; animation:letter-arrive .42s cubic-bezier(.2,.75,.2,1) forwards; animation-delay:calc(var(--letter-index) * 32ms + 120ms); }
+@keyframes letter-arrive { from { opacity:0; transform:translateY(12px) rotate(3deg); filter:blur(4px); } to { opacity:1; transform:translateY(0) rotate(0); filter:blur(0); } }
+.hero-copy .hero-actions,.hero-copy .hero-meta,.hero-copy .home-quick-links { animation:copy-fade-in .55s ease both; animation-delay:1.15s; }
+@keyframes copy-fade-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.hallucination-orbit { position:absolute; top:12%; right:9%; width:108px; height:108px; z-index:2; pointer-events:none; }
+.orbit-ring { position:absolute; inset:0; border:1px solid #c8bdcf; border-radius:50%; }
+.ring-one { transform:rotate(25deg) scaleX(.62); animation:orbit-spin 9s linear infinite; }
+.ring-two { transform:rotate(-35deg) scaleX(.62); border-style:dashed; animation:orbit-spin 13s linear infinite reverse; }
+.orbit-spark,.orbit-check { position:absolute; display:grid; place-items:center; width:30px; height:30px; border-radius:50%; font-weight:800; box-shadow:0 3px 12px #29263212; }
+.orbit-spark { top:4px; right:0; background:#eee4eb; color:#8d5660; animation:float-soft 2.8s ease-in-out infinite; }
+.orbit-check { bottom:4px; left:0; background:#dfe7d8; color:#475944; animation:float-soft 3.2s ease-in-out infinite reverse; }
+.orbit-dot { position:absolute; width:8px; height:8px; right:9px; bottom:20px; background:#82738e; border-radius:50%; }
+@keyframes orbit-spin { to { transform:rotate(385deg) scaleX(.62); } }
+@keyframes float-soft { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
+@media(max-width:800px) { .hallucination-orbit { top:8%; right:7%; transform:scale(.8); transform-origin:top right; } }
+@media(max-width:540px) {
+  .hero h1 { font-size:clamp(34px,9vw,44px); letter-spacing:-1.8px; }
+  .hero-pun { max-width:78%; }
+  .hallucination-orbit { width:72px; height:72px; top:5%; right:4%; }
+  .orbit-spark,.orbit-check { width:24px; height:24px; }
+  .type-letter { animation-duration:.3s; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .type-letter { opacity:1; animation:none; }
+  .hero-copy .hero-actions,.hero-copy .hero-meta,.hero-copy .home-quick-links { animation:none; }
+  .ring-one,.ring-two,.orbit-spark,.orbit-check { animation:none; }
+}
