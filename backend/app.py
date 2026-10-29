@@ -186,28 +186,50 @@ STOP_WORDS = {
 }
 
 
+def normalize_token(token: str) -> str:
+    """Normalize common English plurals and inflections without external NLP dependencies."""
+    token = token.lower().strip("'-")
+    if len(token) > 5 and token.endswith("ies"):
+        return token[:-3] + "y"
+    if len(token) > 5 and token.endswith("ing"):
+        root = token[:-3]
+        return root[:-1] if len(root) > 3 and root[-1] == root[-2] else root
+    if len(token) > 4 and token.endswith("ed"):
+        return token[:-2]
+    if len(token) > 4 and token.endswith("es"):
+        return token[:-2]
+    if len(token) > 3 and token.endswith("s") and not token.endswith(("ss", "us", "is")):
+        return token[:-1]
+    return token
+
+
 def content_words(text: str) -> set[str]:
     return {
-        token.lower().strip("'-")
+        normalize_token(token)
         for token in re.findall(r"[A-Za-z][A-Za-z'-]*", text or "")
-        if len(token) > 2 and token.lower() not in STOP_WORDS
+        if len(normalize_token(token)) > 2 and normalize_token(token) not in STOP_WORDS
     }
 
 
 def retrieval_score(question: str, passage: str) -> float:
-    """Small dependency-free lexical retrieval score in the range 0..1."""
+    """Dependency-free relevance score combining coverage, phrase matches, and numbers."""
     q_words = content_words(question)
     p_words = content_words(passage)
     if not q_words or not p_words:
         return 0.0
     overlap = len(q_words & p_words)
-    coverage = overlap / max(len(q_words), 1)
-    jaccard = overlap / max(len(q_words | p_words), 1)
-    # A matching year, percentage or count is useful for factoid questions.
+    coverage = overlap / len(q_words)
+    precision = overlap / max(len(p_words), 1)
+    # Reward a contiguous multiword match, which is a useful signal of topical relevance.
+    q_phrase = " ".join(normalize_token(t) for t in re.findall(r"[A-Za-z][A-Za-z'-]*", question) if normalize_token(t) not in STOP_WORDS)
+    p_phrase = " ".join(normalize_token(t) for t in re.findall(r"[A-Za-z][A-Za-z'-]*", passage) if normalize_token(t) not in STOP_WORDS)
+    phrase_bonus = 0.12 if len(q_phrase) >= 8 and q_phrase in p_phrase else 0.0
+    # Matching numbers matter for factoid questions, but cannot outweigh weak word overlap.
     q_numbers = set(re.findall(r"\b\d[\d,]*(?:\.\d+)?%?\b", question))
     p_numbers = set(re.findall(r"\b\d[\d,]*(?:\.\d+)?%?\b", passage))
-    number_bonus = 0.12 if q_numbers and q_numbers & p_numbers else 0.0
-    return min(1.0, 0.75 * coverage + 0.25 * jaccard + number_bonus)
+    number_bonus = 0.08 if q_numbers and q_numbers & p_numbers else 0.0
+    score = 0.65 * coverage + 0.20 * precision + phrase_bonus + number_bonus
+    return min(1.0, score)
 
 
 def retrieve_passages(question: str, text: str, top_k: int = 3) -> list[tuple[str, float]]:
