@@ -924,3 +924,28 @@ body { background:radial-gradient(ellipse at 80% 0%,#eee7f0 0,transparent 28rem)
 @media(prefers-reduced-motion:reduce) {
  .hero::before,.hero::after,.hero-visual::before { animation:none !important; }
 }
+
+
+/* Motion should feel like a living hero, not just animated headline letters. */
+.hero .eyebrow { animation:hero-rise .55s ease both; animation-delay:.08s; }
+.hero .hero-title { animation:hero-title-settle .7s cubic-bezier(.2,.75,.2,1) both; }
+.hero .hero-pun { animation:hero-rise .55s ease both; animation-delay:.5s; }
+.hero .hero-description { animation:hero-rise .65s ease both; animation-delay:.62s; }
+.hero .hero-actions { animation:hero-rise .65s ease both !important; animation-delay:.78s !important; }
+.hero .hero-meta,.hero .home-quick-links { animation:hero-rise .65s ease both !important; animation-delay:.95s !important; }
+.hero-visual { animation:visual-arrive .9s cubic-bezier(.2,.75,.2,1) both; animation-delay:.18s; }
+.hero-visual .pipeline-node { animation:node-arrive .6s ease both; }
+.hero-visual .pipeline-node:nth-child(1) { animation-delay:.25s; }
+.hero-visual .pipeline-node:nth-child(2) { animation-delay:.42s; }
+.hero-visual .pipeline-node:nth-child(3) { animation-delay:.59s; }
+.hero-visual .claim-mini { animation:hero-rise .65s ease both; animation-delay:.72s; }
+.hero-visual .orbit-spark { animation:orbit-float 4.8s ease-in-out infinite; }
+.hero-visual .orbit-check { animation:orbit-float 5.6s ease-in-out infinite reverse; }
+@keyframes hero-rise { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes hero-title-settle { from { opacity:.6; } to { opacity:1; } }
+@keyframes visual-arrive { from { opacity:0; transform:translateY(16px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+@keyframes node-arrive { from { opacity:.25; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes orbit-float { 0%,100% { translate:0 0; } 50% { translate:0 -8px; } }
+@media(prefers-reduced-motion:reduce) {
+ .hero .eyebrow,.hero .hero-title,.hero .hero-pun,.hero .hero-description,.hero .hero-actions,.hero .hero-meta,.hero .home-quick-links,.hero-visual,.hero-visual .pipeline-node,.hero-visual .claim-mini,.hero-visual .orbit-spark,.hero-visual .orbit-check { animation:none !important; opacity:1 !important; transform:none !important; translate:none !important; }
+}
