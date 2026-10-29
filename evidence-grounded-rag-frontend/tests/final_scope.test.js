@@ -96,3 +96,13 @@ test("claim report shows verdict, decisive evidence, and the backend reason befo
 test("mobile navigation closes on Escape and responsive report content can wrap", () => {
   assert.match(appSource, /event\.key === "Escape"/);
 });
+
+
+test("the homepage uses friendly language and interactive workflow steps", () => {
+  assert.match(appSource, /friendly fact-checking sidekick/);
+  assert.match(appSource, /AI can sound sure of itself and still get things wrong/);
+  assert.match(appSource, /className="step-card step-interactive"/);
+  assert.match(appSource, /Tap to see what happens/);
+  assert.match(appSource, /No jargon quiz required/);
+  assert.match(appSource, /Here’s what we found/);
+});
