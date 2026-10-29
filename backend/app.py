@@ -401,7 +401,7 @@ def looks_like_claim_check(text: str) -> bool:
     )
     if explicit:
         return True
-    if re.match(r"^(?:i am|i'm|i can|i have|i was|i will|i always|i never)\b", low):
+    if re.match(r"^(?:i am|i'm|im|i can|i have|i was|i will|i always|i never)\b", low):
         return True
     # Declarative first-person claims should not be transformed into a biography
     # or a general subject question. Ordinary interrogative questions are excluded.
@@ -468,7 +468,7 @@ def verify_user_claims(question: str, evidence: str) -> list[dict[str, Any]]:
         # first-person identity or abilities. Keep such personal assertions unresolved
         # unless the verifier can cite the exact proposition itself (not merely a related topic).
         first_person_assertion = bool(re.match(
-            r"^\s*(?:verify this claim:\s*)?(?:i\s+(?:am|’m|'m|can|could|have|had|will|was|were|do|did)\b)",
+            r"^\s*(?:verify this claim:\s*)?(?:i\s+(?:am|’m|'m|can|could|have|had|will|was|were|do|did)\b|im\b)",
             claim, re.IGNORECASE
         ))
         if first_person_assertion and status == "SUPPORTED" and claim.strip() not in evidence:
