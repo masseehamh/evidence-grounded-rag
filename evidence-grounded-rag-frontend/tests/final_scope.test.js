@@ -15,15 +15,15 @@ const RESULT = {
   sources: [],
 };
 
-test("the workspace offers only manual evidence and document upload", () => {
+test("the workspace offers website search, manual evidence and document upload", () => {
+  assert.match(appSource, /title="Website search"/);
+  assert.match(appSource, /selectMode\("web"\)/);
   assert.match(appSource, /title="Manual evidence"/);
   assert.match(appSource, /title="Upload document"/);
   // Manual evidence is the default mode and must be visible without extra clicks.
   assert.match(appSource, /const \[mode, setMode\] = useState\("manual"\)/);
   assert.match(appSource, /const \[showAdvanced, setShowAdvanced\] = useState\(true\)/);
-  assert.doesNotMatch(appSource, /Internet search/);
-  assert.doesNotMatch(appSource, /mode === "web"/);
-  assert.doesNotMatch(appSource, /selectMode\("web"\)/);
+  assert.match(appSource, /mode === "web"/);
 });
 
 test("the corrected-answer badge is driven by corrected_status, not hard-coded", () => {
