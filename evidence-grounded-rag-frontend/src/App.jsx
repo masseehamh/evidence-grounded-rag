@@ -26,6 +26,7 @@ function App() {
   const [result, setResult] = useState(null);
   const [backendStatus, setBackendStatus] = useState(isApiConfigured ? "checking" : "demo");
   const [usedDemo, setUsedDemo] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (!isApiConfigured) {
@@ -135,19 +136,26 @@ function App() {
     }
   }
 
+  function navigate(nextPage) {
+    if (nextPage === "results" && !result) { setPage("ask"); setError("Ask a question first."); }
+    else { setPage(nextPage); setError(""); }
+    setMobileNavOpen(false);
+  }
+
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <button className="brand" onClick={() => setPage("home")} aria-label="Go to dashboard">
+    <div className={`app-shell${mobileNavOpen ? " mobile-nav-open" : ""}`}>
+      {mobileNavOpen && <button className="drawer-backdrop" aria-label="Close navigation menu" onClick={() => setMobileNavOpen(false)} />}
+      <aside className="sidebar" id="app-sidebar">
+        <button className="brand" onClick={() => navigate("home")} aria-label="Go to dashboard">
           <span className="brand-mark">V</span>
           <span><strong>Verity RAG</strong><small>Evidence lab</small></span>
         </button>
         <div className="nav-label">WORKSPACE</div>
         <nav className="side-nav" aria-label="Main navigation">
-          <button className={page === "home" ? "nav-item active" : "nav-item"} onClick={() => setPage("home")}><span className="nav-icon">⌂</span> Overview</button>
-          <button className={page === "ask" ? "nav-item active" : "nav-item"} onClick={() => setPage("ask")}><span className="nav-icon">＋</span> Ask a question</button>
-          <button className={page === "results" ? "nav-item active" : "nav-item"} disabled={!result} onClick={() => setPage("results")}><span className="nav-icon">☷</span> Verification results</button>
-          <button className={page === "evaluation" ? "nav-item active" : "nav-item"} onClick={() => setPage("evaluation")}><span className="nav-icon">⌁</span> Evaluation tests</button>
+          <button className={page === "home" ? "nav-item active" : "nav-item"} onClick={() => navigate("home")}><span className="nav-icon">⌂</span> Overview</button>
+          <button className={page === "ask" ? "nav-item active" : "nav-item"} onClick={() => navigate("ask")}><span className="nav-icon">＋</span> Ask a question</button>
+          <button className={page === "results" ? "nav-item active" : "nav-item"} onClick={() => navigate("results")} aria-label={result ? "Open verification results" : "Ask a question first to open verification results"}><span className="nav-icon">☷</span> Verification results{!result && <small className="nav-item-hint">Ask a question first</small>}</button>
+          <button className={page === "evaluation" ? "nav-item active" : "nav-item"} onClick={() => navigate("evaluation")}><span className="nav-icon">⌁</span> Evaluation tests</button>
         </nav>
         <div className="sidebar-bottom">
           <div className="sidebar-note"><span className="note-icon">✳</span><div><strong>Evidence first</strong><p>Every claim should be traceable to a source.</p></div></div>
@@ -157,7 +165,7 @@ function App() {
 
       <main className="main-area">
         <header className="topbar">
-          <div className="breadcrumb">Workspace <span>/</span> {page === "home" ? "Overview" : page === "ask" ? "Ask a question" : "Verification results"}</div>
+          <div className="breadcrumb"><button className="menu-button" type="button" aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"} aria-controls="app-sidebar" aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen(!mobileNavOpen)}><span></span><span></span><span></span></button>Workspace <span>/</span> {page === "home" ? "Overview" : page === "ask" ? "Ask a question" : page === "evaluation" ? "Evaluation tests" : "Verification results"}</div>
           <div className="topbar-right">
             <span className={`connection ${backendStatus}`}><span />{backendStatus === "online" ? "Backend connected" : backendStatus === "checking" ? "Checking backend" : backendStatus === "offline" ? "Backend unavailable" : "Demo mode"}</span>
             <span className="avatar">ER</span>
@@ -171,7 +179,7 @@ function App() {
             <section className="page-section">
               <div className="page-heading">
                 <div><div className="eyebrow">EVIDENCE WORKSPACE</div><h1>Ask with confidence.</h1><p>Choose where the evidence comes from. The backend will generate, verify, and correct the answer.</p></div>
-                <button className="button button-ghost" onClick={clearForm}>↺ Clear</button>
+                
               </div>
               <div className="mode-grid">
                 <ModeCard active={mode === "web"} icon="⌕" title="Website search" desc="Search approved web sources and verify the answer against retrieved evidence." onClick={() => selectMode("web")} />
@@ -195,7 +203,7 @@ function App() {
               <form className="question-form panel" onSubmit={handleSubmit}>
                 <div className="form-title"><span className="step-number">01</span><div><h2>Your question</h2><p>State the claim or question you want the evidence to check.</p></div></div>
                 <label htmlFor="question">Question</label>
-                <textarea id="question" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask a factual question or enter a claim to check…" rows={3} />
+                <textarea id="question" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask a factual question or enter a claim to check…" rows={3} /><div className="question-field-actions"><button type="button" className="button button-ghost" onClick={clearForm}>↺ Clear</button></div>
                 {mode === "manual" && <>
                   <div className="field-row"><label htmlFor="evidence">Evidence text</label><span className="field-hint">Paste excerpts, notes, or source text</span></div>
                   <textarea id="evidence" value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Paste the relevant source passage. Keep surrounding context needed to interpret it." rows={7} />
@@ -210,7 +218,7 @@ function App() {
               </form>
             </section>
           )}
-          {page === "results" && result && <ResultsPage result={result} usedDemo={usedDemo} onAskAgain={() => setPage(returnPage)} backLabel="← Back to question" />}
+          {page === "results" && result && <ResultsPage result={result} usedDemo={usedDemo} onAskAgain={() => navigate(returnPage)} backLabel="← Back to question" />}{page === "results" && !result && <section className="page-section"><div className="empty-state panel results-empty"><h2>Ask a question first</h2><p>Your verification report will appear here after you run a question.</p><button className="button button-primary" onClick={() => navigate("ask")}>Start a question <span>→</span></button></div></section>}
         </div>
         <footer className="app-footer"><span>Verity RAG <span className="footer-dot">·</span> Evidence-based answer verification</span><span>{isApiConfigured ? `API: ${API_BASE_URL}` : "API not configured"}</span></footer>
       </main>
@@ -302,8 +310,7 @@ function ResultsPage({ result, usedDemo, onAskAgain, backLabel = "← Back to qu
       <div className="claim-card-top"><div className="claim-number">{String(index + 1).padStart(2, "0")}</div><div className="claim-main"><div className="claim-label">EXTRACTED CLAIM</div><p className="claim-text">{claim.claim}</p></div><StatusPill status={claim.status} /></div>
       <div className="claim-evidence"><div className="evidence-heading"><span>▤</span> Supporting evidence</div><p>{claim.evidence || "No supporting evidence was returned by the backend."}</p></div>
       <div className="claim-metadata">
-        <div><span className="metadata-label">VERIFICATION METHOD</span><strong>{claim.support_basis === "instruction_model_verifier" || claim.nli_label === "instruction_model_verifier" ? "Instruction-model evidence review" : claim.nli_label || "Not reported"}</strong><small>This deployment uses an instruction model to assess claim–evidence support; it does not report a separate trained NLI classifier.</small></div>
-        <div><span className="metadata-label">OVERALL CONFIDENCE</span><strong>{claim.confidence === null || claim.confidence === undefined ? (claim.support_basis === "answer_span_in_evidence" ? "Grounded by evidence checks" : "Not available") : `${Math.round(Number(claim.confidence))}%`}</strong>{claim.confidence !== null && claim.confidence !== undefined && <div className="confidence-track"><span style={{ width: `${Math.max(0, Math.min(100, Number(claim.confidence)))}%` }} /></div>}{claim.support_basis && <small>Support basis: {claim.support_basis === "answer_span_in_evidence" ? "answer appears in question-relevant evidence" : claim.support_basis === "instruction_model_verifier" ? "instruction-model evidence review" : "method not reported"}</small>}</div>
+        <div><span className="metadata-label">VERIFICATION METHOD</span><strong>Instruction-model verifier</strong><small>This deployment does not report a separately trained NLI classifier.</small></div>
         <div><span className="metadata-label">NUMBER / ENTITY CHECK</span><strong>{claim.consistency?.status || "Not available"}</strong><small>{claim.consistency?.details || claim.consistency?.message || "No consistency details returned."}</small></div>
       </div>
     </article>) : <div className="empty-state panel">{insufficient
