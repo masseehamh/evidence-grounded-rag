@@ -152,8 +152,14 @@ def split_into_sentences(text: str) -> list[str]:
     if not text:
         return []
     text = re.sub(r"(?<=[.!?])(?=[A-Z])", " ", text)
+    # Preserve common ranking abbreviation "No. 1"; otherwise the period in
+    # "No. 1 singer" is mistaken for a sentence boundary and splits one claim.
+    text = re.sub(r"\bNo\.\s+(?=\d)", "No<NO_ABBREVIATION_DOT> ", text, flags=re.I)
     parts = re.split(r"(?<=[.!?])\s+|\n+", text)
-    return [part.strip() for part in parts if part.strip()]
+    return [
+        part.replace("No<NO_ABBREVIATION_DOT>", "No.").strip()
+        for part in parts if part.strip()
+    ]
 
 
 def split_claims(answer: str) -> list[str]:
