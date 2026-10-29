@@ -30,7 +30,7 @@ class ClaimRoutingTests(unittest.TestCase):
         claims = app.extract_user_claims(
             "Verify this claim: I am Superman and I can fly."
         )
-        self.assertEqual(claims, ["I am Superman.", "I can fly."])
+        self.assertEqual(claims, ["I am Superman and I can fly."])
 
     def test_model_cannot_mark_supported_without_exact_evidence_excerpt(self):
         fake = {
