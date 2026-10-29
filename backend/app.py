@@ -740,6 +740,11 @@ TRUSTED_EXACT_DOMAINS = {
     "springer.com", "wiley.com", "reuters.com", "apnews.com", "bbc.com",
     "bbc.co.uk", "theguardian.com", "ourworldindata.org", "worldbank.org",
     "imf.org", "oecd.org", "data.gov", "india.gov.in",
+    # Established health, exercise, and fitness education sources.
+    "health.harvard.edu", "mayoclinic.org", "clevelandclinic.org",
+    "medlineplus.gov", "nhs.uk", "betterhealth.vic.gov.au",
+    "acefitness.org", "nasm.org", "exrx.net", "verywellfit.com",
+    "healthline.com", "strengthlog.com",
 }
 BLOCKED_HOSTS = {
     "reddit.com", "quora.com", "medium.com", "facebook.com", "instagram.com",
@@ -786,19 +791,37 @@ def source_priority(domain: str) -> int:
 
 
 def search_web_evidence(question: str, max_results: int = 15) -> list[dict[str, str]]:
-    """Retrieve evidence only from a conservative allowlist of HTTPS source domains.
+    """Retrieve relevant evidence from several query formulations and trusted domains.
 
-    This is a provenance filter, not a guarantee that every allowed page is accurate.
-    Unrecognized sources are excluded; if no allowed results remain, callers must abstain.
+    Search snippets are still treated as evidence, not as proof of correctness. The
+    allowlist is intentionally limited, but includes reputable health and fitness
+    publishers so everyday exercise questions are not needlessly filtered out.
     """
+    query = (question or "").strip()
+    if not query:
+        return []
+
+    # Different formulations help when a natural-language question gets poor results.
+    queries = list(dict.fromkeys([
+        query,
+        f"{query} official guidance",
+        f"{query} health fitness exercise",
+    ]))
+    gathered: list[dict[str, Any]] = []
     try:
-        results = DDGS().text(question, max_results=max_results)
+        with DDGS() as ddgs:
+            for search_query in queries:
+                try:
+                    gathered.extend(ddgs.text(search_query, max_results=max(5, min(max_results, 10))) or [])
+                except Exception:
+                    # A failed variant should not discard results from other variants.
+                    continue
     except Exception:
         raise RuntimeError("Web search is temporarily unavailable. Please try again later.") from None
 
     sources: list[dict[str, str]] = []
     seen_urls: set[str] = set()
-    for item in results or []:
+    for item in gathered:
         if not isinstance(item, dict):
             continue
         title = str(item.get("title") or "Web result").strip()
@@ -818,9 +841,11 @@ def search_web_evidence(question: str, max_results: int = 15) -> list[dict[str, 
             "trust_level": "allowlisted_domain_unverified_page",
             "passage": passage,
         })
-    # Prefer official/primary sources, then scholarly publishers, then general news.
+
+    # Prefer official/primary sources, then scholarly publishers, then health/fitness
+    # education sources and selected news outlets. Preserve relevance within each tier.
     sources.sort(key=lambda source: source_priority(source["domain"]))
-    return sources
+    return sources[:max_results]
 
 
 @app.get("/health")
