@@ -174,6 +174,7 @@ function App() {
                 <button className="button button-ghost" onClick={clearForm}>↺ Clear</button>
               </div>
               <div className="mode-grid">
+                <ModeCard active={mode === "web"} icon="⌕" title="Website search" desc="Search approved web sources and verify the answer against retrieved evidence." onClick={() => selectMode("web")} />
                 <ModeCard active={mode === "document"} icon="⇧" title="Upload document" desc="Use a document you have permission to share." onClick={() => selectMode("document")} />
               </div>
               <div className="advanced-evidence">
