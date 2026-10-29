@@ -568,52 +568,22 @@ def retrieve_document_context(question: str, document_text: str, top_k: int = 3)
 
 
 def search_web_evidence(question: str, max_results: int = 5) -> list[dict[str, str]]:
-    """Retrieve relevant web passages, preferring official and primary sources."""
+    """Retrieve short web passages for evidence-grounded answering."""
     try:
-        # Search both the question and an official-source variant, then rank the
-        # combined results. This improves the chance that primary sources appear
-        # before general reference sites without assuming every question has one.
-        batches = [
-            DDGS().text(question, max_results=max_results),
-            DDGS().text(f"{question} official website primary source", max_results=max_results),
-        ]
+        results = DDGS().text(question, max_results=max_results)
     except Exception:
         raise RuntimeError("Web search is temporarily unavailable. Please try again later.") from None
 
-    by_url: dict[str, dict[str, str]] = {}
-    for results in batches:
-        for item in results or []:
-            if not isinstance(item, dict):
-                continue
-            title = str(item.get("title") or "Web result").strip()
-            url = str(item.get("href") or item.get("url") or "").strip()
-            passage = str(item.get("body") or item.get("snippet") or "").strip()
-            if not passage:
-                continue
-            key = url.lower().rstrip("/") or f"{title.lower()}:{passage[:100].lower()}"
-            candidate = {"title": title, "url": url, "passage": passage}
-            if key not in by_url or len(passage) > len(by_url[key]["passage"]):
-                by_url[key] = candidate
-
-    def source_priority(source: dict[str, str]) -> tuple[int, float]:
-        title = source["title"].lower()
-        url = source["url"].lower()
-        score = 0
-        # Explicitly labelled official sources and public institutions get priority.
-        if "official" in title or "official website" in source["passage"].lower():
-            score += 5
-        if re.search(r"https?://[^/]+\.(gov|gov\.[a-z.]+|edu|edu\.[a-z.]+|int)(?:/|$)", url):
-            score += 4
-        if any(marker in url for marker in (".gov/", ".gov.", ".edu/", ".int/")):
-            score += 3
-        # Keep encyclopedias useful as backup, but behind likely primary sources.
-        if "wikipedia.org" in url:
-            score -= 2
-        relevance = retrieval_score(question, source["title"] + " " + source["passage"])
-        return score, relevance
-
-    ranked = sorted(by_url.values(), key=source_priority, reverse=True)
-    return ranked[:max_results]
+    sources: list[dict[str, str]] = []
+    for item in results or []:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title") or "Web result").strip()
+        url = str(item.get("href") or item.get("url") or "").strip()
+        passage = str(item.get("body") or item.get("snippet") or "").strip()
+        if passage:
+            sources.append({"title": title, "url": url, "passage": passage})
+    return sources
 
 
 @app.get("/health")
