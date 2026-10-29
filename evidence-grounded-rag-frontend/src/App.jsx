@@ -159,7 +159,7 @@ function App() {
         </nav>
         <div className="sidebar-bottom">
           <div className="sidebar-note"><span className="note-icon">✳</span><div><strong>Evidence first</strong><p>Every claim should be traceable to a source.</p></div></div>
-          <div className="sidebar-foot">EVIDENCE-BASED RAG<br /><span>HALLUCINATION DETECTION &amp; CORRECTION</span></div>
+          <div className="sidebar-foot">AI REALITY CHECK<br /><span>HALLUCINATION DETECTION &amp; CORRECTION</span></div>
         </div>
       </aside>
 
@@ -234,14 +234,14 @@ function ModeCard({ active, icon, title, desc, onClick, disabled }) {
 
 function HomePage({ onStart, onEvaluation }) {
   const steps = [
-    ["01", "Retrieve evidence", "Find relevant passages from pasted text or uploaded documents."],
-    ["02", "Generate an answer", "Use the retrieved evidence as context for the response."],
-    ["03", "Verify each claim", "An instruction-model verifier compares claims with retrieved evidence; numeric checks flag mismatched values."],
-    ["04", "Correct the answer", "Revise or remove unsupported claims and show the evidence trail."]
+    ["01", "Find the receipts", "Look for the bits that can back up an answer."],
+    ["02", "Get an answer", "Put the useful info together into a reply."],
+    ["03", "Check the facts", "Check each claim against the info we found, and flag numbers that don’t match."],
+    ["04", "Fix what’s off", "Tweak or remove details that the evidence can’t back up."]
   ];
   return <section className="home-page">
     <div className="hero">
-      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> SAY HI TO HALLY</div><h1 className="hero-title"><span className="type-line">{Array.from("Hallucination detection").map((letter, i) => <span className="type-letter" key={`a-${i}`} style={{ "--letter-index": i }}>{letter === " " ? "\u00a0" : letter}</span>)}</span><br /><span className="type-line accent-line">{Array.from("& correction.").map((letter, i) => <span className="type-letter" key={`b-${i}`} style={{ "--letter-index": i + 23 }}>{letter === " " ? "\u00a0" : letter}</span>)}</span></h1><p className="hero-pun">In AI, not humans. (Pun very much intended.)</p><p className="hero-description">AI can make things up with a straight face. Hally helps you catch that, check the receipts, and see what actually adds up.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={() => document.getElementById("workflow-details")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Explore the workflow <span>↓</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div><div className="home-quick-links"><button onClick={onEvaluation}>Run a contradiction test <span>→</span></button><span>Use a controlled input to inspect the verifier, not a prewritten sample result.</span></div></div>
+      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-line" /> SAY HI TO HALLY</div><h1 className="hero-title"><span className="type-line">{Array.from("Hallucination detection").map((letter, i) => <span className="type-letter" key={`a-${i}`} style={{ "--letter-index": i }}>{letter === " " ? "\u00a0" : letter}</span>)}</span><br /><span className="type-line accent-line">{Array.from("& correction.").map((letter, i) => <span className="type-letter" key={`b-${i}`} style={{ "--letter-index": i + 23 }}>{letter === " " ? "\u00a0" : letter}</span>)}</span></h1><p className="hero-pun">In AI, not humans. (Pun very much intended.)</p><p className="hero-description">AI can make things up with a straight face. Hally helps you catch that, check the receipts, and see what actually adds up.</p><div className="hero-actions"><button className="button button-primary" onClick={onStart}>Start asking <span>→</span></button><button className="button button-ghost" onClick={() => document.getElementById("workflow-details")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Explore the workflow <span>↓</span></button></div><div className="hero-meta"><span><i className="tiny-check">✓</i> Claim-level verification</span><span><i className="tiny-check">✓</i> Evidence-linked corrections</span></div><div className="home-quick-links"><button onClick={onEvaluation}>Run a contradiction test <span>→</span></button><span>Try a tricky claim and see what Hally spots.</span></div></div>
       <div className="hero-visual" aria-label="Animated illustration of Hally checking an AI answer"><div className="hallucination-orbit" aria-hidden="true"><span className="orbit-ring ring-one"></span><span className="orbit-ring ring-two"></span><span className="orbit-spark">?</span><span className="orbit-check">✓</span><span className="orbit-dot"></span></div>
         <div className="visual-top"><span className="visual-dot" /><span className="visual-dot" /><span className="visual-dot" /><span className="visual-title">HOW VERIFICATION WORKS</span><span className="visual-live">WORKFLOW EXAMPLE</span></div>
         <div className="pipeline">
@@ -259,12 +259,12 @@ function HomePage({ onStart, onEvaluation }) {
     <div id="workflow-details" className="section-intro"><div><div className="eyebrow">THE WORKFLOW</div><h2>Four small steps. No mystery.</h2></div><p>Find the evidence, draft an answer, check the claims, then tidy up anything the evidence can’t support. Tap a step to explore it.</p></div>
     <div className="steps-grid">{steps.map(([number, title, desc]) => <details className="step-card step-interactive" key={number}><summary><span className="step-number">{number}</span><span className="step-summary-copy"><strong>{title}</strong><small>Tap to see what happens</small></span><span className="step-expand" aria-hidden="true">+</span></summary><p>{desc}</p></details>)}</div>
     <section className="platform-section">
-      <div className="section-intro"><div><div className="eyebrow">ABOUT VERITY RAG</div><h2>More than a fluent answer.</h2></div><p>Hally helps you ask, “Wait — where did that come from?” It puts the answer next to the evidence, so you can inspect it, challenge it, and make up your own mind.</p></div>
+      <div className="section-intro"><div><div className="eyebrow">ABOUT HALLY</div><h2>Sounds right ≠ is right.</h2></div><p>Hally helps you ask, “Wait — where did that come from?” It puts the answer next to the evidence, so you can inspect it, challenge it, and make up your own mind.</p></div>
       <div className="platform-grid">
-        <article className="platform-card"><span className="platform-icon">⌕</span><h3>Two evidence paths</h3><p>Use your own text or upload a plain-text document as evidence.</p></article>
-        <article className="platform-card"><span className="platform-icon">✓</span><h3>Claim-level checks</h3><p>Claims are labelled as supported, contradicted, or not supported by enough evidence.</p></article>
-        <article className="platform-card"><span className="platform-icon">↺</span><h3>Evidence-based correction</h3><p>The system can revise unsupported content instead of treating every generated sentence as fact.</p></article>
-        <article className="platform-card"><span className="platform-icon">▤</span><h3>Inspectable reports</h3><p>Review the original answer, corrected answer, evidence excerpts, verification signals, and retrieved sources.</p></article>
+        <article className="platform-card"><span className="platform-icon">⌕</span><h3>Bring your own receipts</h3><p>Use your own text or upload a plain-text document as evidence.</p></article>
+        <article className="platform-card"><span className="platform-icon">✓</span><h3>Check the claims</h3><p>Claims are labelled as supported, contradicted, or not supported by enough evidence.</p></article>
+        <article className="platform-card"><span className="platform-icon">↺</span><h3>Fix the shaky bits</h3><p>The system can revise unsupported content instead of treating every generated sentence as fact.</p></article>
+        <article className="platform-card"><span className="platform-icon">▤</span><h3>Show me the proof</h3><p>Review the original answer, corrected answer, evidence excerpts, verification signals, and retrieved sources.</p></article>
       </div>
       <p className="platform-disclaimer">Research prototype, not a guarantee of truth. Search snippets can be incomplete, models can make mistakes, and important claims should be checked against the original sources.</p>
     </section>
