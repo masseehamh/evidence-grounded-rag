@@ -14,7 +14,7 @@ function StatusPill({ status }) {
 function App() {
   const [page, setPage] = useState("home");
   const [returnPage, setReturnPage] = useState("ask");
-  const [mode, setMode] = useState("web");
+  const [mode, setMode] = useState("manual");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [question, setQuestion] = useState("");
   const [evidence, setEvidence] = useState("");
@@ -110,7 +110,7 @@ function App() {
     setBusy(true);
     try {
       if (!isApiConfigured) {
-        if (mode === "document" || mode === "web") throw new Error("Document upload and web search require the connected backend. Set VITE_API_BASE_URL and redeploy the frontend.");
+        if (mode === "document") throw new Error("Document upload requires the connected backend. Set VITE_API_BASE_URL and redeploy the frontend.");
         setResult(normalizeResult(demoResult));
         setUsedDemo(true);
         setReturnPage("ask");
@@ -174,11 +174,10 @@ function App() {
                 <button className="button button-ghost" onClick={clearForm}>↺ Clear</button>
               </div>
               <div className="mode-grid">
-                <ModeCard active={mode === "web"} icon="⌕" title="Web search" desc="Find online sources relevant to your question." onClick={() => selectMode("web")} />
                 <ModeCard active={mode === "document"} icon="⇧" title="Upload document" desc="Use a document you have permission to share." onClick={() => selectMode("document")} />
               </div>
               <div className="advanced-evidence">
-                <button type="button" className="advanced-toggle" aria-expanded={showAdvanced} onClick={() => { setShowAdvanced(!showAdvanced); if (!showAdvanced) selectMode("manual"); else selectMode("web"); }}>
+                <button type="button" className="advanced-toggle" aria-expanded={showAdvanced} onClick={() => { setShowAdvanced(!showAdvanced); if (!showAdvanced) selectMode("manual"); else if (mode === "manual") selectMode("document"); }}>
                   <span>{showAdvanced ? "−" : "+"}</span> Advanced: use specific evidence text
                   <small>For controlled tests or when you already have a source excerpt</small>
                 </button>
@@ -188,7 +187,6 @@ function App() {
                 <div className="form-title"><span className="step-number">01</span><div><h2>Your question</h2><p>State the claim or question you want the evidence to check.</p></div></div>
                 <label htmlFor="question">Question</label>
                 <textarea id="question" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask a factual question or enter a claim to check…" rows={3} />
-                {mode === "web" && <div className="compact-guidance">Web search retrieves online snippets. Review the original source links before relying on a result.</div>}
                 {mode === "manual" && <>
                   <div className="field-row"><label htmlFor="evidence">Evidence text</label><span className="field-hint">Paste excerpts, notes, or source text</span></div>
                   <textarea id="evidence" value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Paste the relevant source passage. Keep surrounding context needed to interpret it." rows={7} />
@@ -219,7 +217,7 @@ function ModeCard({ active, icon, title, desc, onClick, disabled }) {
 
 function HomePage({ onStart, onEvaluation }) {
   const steps = [
-    ["01", "Retrieve evidence", "Find relevant passages from pasted text, uploaded documents, or a web search."],
+    ["01", "Retrieve evidence", "Find relevant passages from pasted text or uploaded documents."],
     ["02", "Generate an answer", "Use the retrieved evidence as context for the response."],
     ["03", "Verify each claim", "An instruction-model verifier compares claims with retrieved evidence; numeric checks flag mismatched values."],
     ["04", "Correct the answer", "Revise or remove unsupported claims and show the evidence trail."]
@@ -246,7 +244,7 @@ function HomePage({ onStart, onEvaluation }) {
     <section className="platform-section">
       <div className="section-intro"><div><div className="eyebrow">ABOUT VERITY RAG</div><h2>More than a fluent answer.</h2></div><p>Verity RAG is an evidence-grounded question-answering application designed to make AI answers easier to inspect, challenge, and verify responsibly.</p></div>
       <div className="platform-grid">
-        <article className="platform-card"><span className="platform-icon">⌕</span><h3>Three evidence paths</h3><p>Use your own text, upload a plain-text document, or search the web for relevant evidence.</p></article>
+        <article className="platform-card"><span className="platform-icon">⌕</span><h3>Two evidence paths</h3><p>Use your own text or upload a plain-text document as evidence.</p></article>
         <article className="platform-card"><span className="platform-icon">✓</span><h3>Claim-level checks</h3><p>Claims are labelled as supported, contradicted, or not supported by enough evidence.</p></article>
         <article className="platform-card"><span className="platform-icon">↺</span><h3>Evidence-based correction</h3><p>The system can revise unsupported content instead of treating every generated sentence as fact.</p></article>
         <article className="platform-card"><span className="platform-icon">▤</span><h3>Inspectable reports</h3><p>Review the original answer, corrected answer, evidence excerpts, verification signals, and retrieved sources.</p></article>
