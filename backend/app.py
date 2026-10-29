@@ -386,6 +386,45 @@ def verify_claims(question: str, answer: str, evidence: str) -> list[dict[str, A
 
 
 
+def looks_like_casual_statement(text: str) -> bool:
+    """Detect conversational statements that should not enter evidence-only RAG."""
+    value = re.sub(r"\s+", " ", (text or "").strip()).lower()
+    if not value or "?" in value:
+        return False
+    # Explicit factual verification requests always stay in the evidence pipeline.
+    if re.match(r"^(?:verify|fact[- ]?check|check|assess|evaluate)\b", value):
+        return False
+    casual_patterns = (
+        r"^(?:hi|hey|hello|heya|yo|sup|good morning|good afternoon|good evening|good night|"
+        r"thanks|thank you|thx|bye|goodbye|lol|lmao|haha|hehe|bruh|bro|dude|"
+        r"nice|cool|awesome|great|okay|ok|alright|wow|omg|oops|yikes|"
+        r"i am|i'm|im|i feel|i think|i guess|i like|i love|i hate|i prefer|i want|"
+        r"i wish|i hope|i need|i miss|i enjoy|i'm feeling|im feeling|"
+        r"that is|that's|thats|this is|this's|it is|it's|its|"
+        r"my name is|call me|meet my|look at|listen|guess what|"
+        r"i'm just|im just|just saying|not gonna lie|ngl)\b"
+    )
+    return bool(re.match(casual_patterns, value))
+
+
+def respond_to_casual_statement(text: str) -> str:
+    """Generate a brief conversational response, separate from evidence verification."""
+    return cloudflare_chat([
+        {
+            "role": "system",
+            "content": (
+                "You are Hally, a friendly conversational assistant. The user has made a casual "
+                "statement rather than asking for evidence-based factual research. Respond naturally "
+                "and briefly, matching the tone. For jokes, roleplay, fandom, preferences, feelings, "
+                "greetings, and playful identity claims, engage lightly without treating them as factual "
+                "claims to verify. Do not invent personal details about the user. If the user later asks "
+                "whether a claim is true or requests fact-checking, that should be handled separately."
+            ),
+        },
+        {"role": "user", "content": text[:MAX_QUESTION_CHARS]},
+    ], max_tokens=120).strip()
+
+
 def looks_like_claim_check(text: str) -> bool:
     """Recognize explicit claim-check requests and declarative assertions.
 
@@ -896,6 +935,31 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="Please enter a question.")
     mode = (payload.mode or "manual").lower().strip()
     sources: list[dict[str, str]] = []
+
+    # Casual conversation should work in every UI mode, without requiring evidence
+    # or turning ordinary statements into failed web-search results.
+    if looks_like_casual_statement(question):
+        try:
+            reply = respond_to_casual_statement(question)
+            return {
+                "verification_status": "CONVERSATIONAL",
+                "original_answer": reply,
+                "corrected_answer": reply,
+                "corrected_status": "NOT_APPLICABLE",
+                "corrected_evidence": "",
+                "claims": [],
+                "removed_claims": [],
+                "correction_attempted": False,
+                "sources": [],
+                "message": "Casual conversation; evidence verification was not needed.",
+                "verification_mode": "conversation",
+            }
+        except RuntimeError as exc:
+            message = str(exc)
+            status_code = 503 if "not configured" in message.lower() else 502
+            raise HTTPException(status_code=status_code, detail=message) from None
+        except ValueError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from None
 
     if mode == "manual":
         evidence = (payload.evidence or "").strip()
