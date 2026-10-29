@@ -28,6 +28,15 @@ class WebSourceTrustTests(unittest.TestCase):
     def test_malformed_url_is_rejected(self):
         self.assertFalse(app.source_is_trusted("not a URL"))
 
+    def test_official_sources_rank_ahead_of_news(self):
+        self.assertLess(app.source_priority("cdc.gov"), app.source_priority("reuters.com"))
+
+    def test_scholarly_publishers_rank_ahead_of_general_news(self):
+        self.assertLess(app.source_priority("nature.com"), app.source_priority("bbc.com"))
+
+    def test_unknown_domains_do_not_get_primary_source_priority(self):
+        self.assertEqual(app.source_priority("random-blog.example"), 2)
+
 
 if __name__ == "__main__":
     unittest.main()
