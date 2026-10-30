@@ -481,15 +481,28 @@ def extract_user_claims(text: str) -> list[str]:
     return split_claims(value)
 
 
-def verify_user_claims(question: str, evidence: str) -> list[dict[str, Any]]:
+def verify_user_claims(question: str, evidence: str,
+                       source_records: Optional[list[dict[str, Any]]] = None) -> list[dict[str, Any]]:
     """Verify the exact user-provided assertions, rather than claims from a generated answer."""
     claims = extract_user_claims(question)
     if not claims:
         return []
+    claim_selections = [
+        select_evidence(claim, source_records, top_k=6)
+        for claim in claims
+    ] if source_records else []
+    claim_evidence = [
+        build_evidence_context(selection, MAX_CONTEXT_CHARS) if source_records else evidence[:MAX_CONTEXT_CHARS]
+        for selection in claim_selections
+    ]
     prompt = {
         "user_input": question,
         "claims_to_check": claims,
-        "evidence": evidence[:MAX_CONTEXT_CHARS],
+        "evidence_by_claim": [
+            {"claim": claim, "evidence": selected}
+            for claim, selected in zip(claims, claim_evidence)
+        ] if source_records else None,
+        "evidence": evidence[:MAX_CONTEXT_CHARS] if not source_records else None,
         "task": (
             "Evaluate ONLY the supplied user claims against the evidence. Preserve each claim's "
             "meaning and subject. Do not rewrite claims into facts about a related person, character, "
@@ -520,9 +533,10 @@ def verify_user_claims(question: str, evidence: str) -> list[dict[str, Any]]:
         status = str(item.get("status", "NOT_ENOUGH_EVIDENCE")).upper().replace(" ", "_")
         if status not in {"SUPPORTED", "CONTRADICTED", "NOT_ENOUGH_EVIDENCE"}:
             status = "NOT_ENOUGH_EVIDENCE"
+        claim_context = claim_evidence[i] if source_records and i < len(claim_evidence) else evidence
         excerpt = str(item.get("evidence") or "").strip()
         # Do not attach a merely similar passage as if it were evidence.
-        if excerpt and excerpt not in evidence:
+        if excerpt and excerpt not in claim_context:
             excerpt = ""
         reason = str(item.get("reason") or "").strip()
         if status == "SUPPORTED" and not excerpt:
@@ -542,6 +556,7 @@ def verify_user_claims(question: str, evidence: str) -> list[dict[str, Any]]:
         results.append({
             "claim": claim, "status": status, "evidence": excerpt,
             "reason": reason or "The available evidence does not establish this claim directly.",
+            "evidence_selection": claim_selections[i] if source_records and i < len(claim_selections) else None,
             "nli_label": "instruction_model_verifier", "confidence": None,
             "nli_confidence": None, "support_basis": "instruction_model_verifier",
             "consistency": {"status": "NOT_CHECKED", "details": "No independent NLI classifier is configured.",
@@ -622,7 +637,7 @@ def run_rag(
     elif claim_check_mode:
         # Preserve the user's actual assertion as the thing being evaluated.
         original_answer = question
-        claims = verify_user_claims(question, evidence)
+        claims = verify_user_claims(question, evidence, source_records)
     else:
         original_answer = generate_answer(question, evidence)
         claims = verify_claims(question, original_answer, evidence)
