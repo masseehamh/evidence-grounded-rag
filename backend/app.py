@@ -20,6 +20,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from ddgs import DDGS
 
+from evidence_selection import select_evidence, build_evidence_context
+
 APP_VERSION = "2.0.0"
 DEFAULT_MODEL = "@cf/zai-org/glm-4.7-flash"
 MAX_UPLOAD_BYTES = 2_000_000
@@ -310,14 +312,27 @@ def generate_answer(question: str, evidence: str) -> str:
     return response.strip()
 
 
-def verify_claims(question: str, answer: str, evidence: str) -> list[dict[str, Any]]:
+def verify_claims(question: str, answer: str, evidence: str,
+                  source_records: Optional[list[dict[str, Any]]] = None) -> list[dict[str, Any]]:
     claims = split_claims(answer)
     if not claims:
         return []
+    claim_selections = [
+        select_evidence(claim, source_records, top_k=6)
+        for claim in claims
+    ] if source_records else []
+    claim_evidence = [
+        build_evidence_context(selection, MAX_CONTEXT_CHARS) if source_records else evidence[:MAX_CONTEXT_CHARS]
+        for selection in claim_selections
+    ]
     prompt = {
         "question": question,
         "answer_claims": claims,
-        "evidence": evidence[:MAX_CONTEXT_CHARS],
+        "evidence_by_claim": [
+            {"claim": claim, "evidence": selected}
+            for claim, selected in zip(claims, claim_evidence)
+        ] if source_records else None,
+        "evidence": evidence[:MAX_CONTEXT_CHARS] if not source_records else None,
         "task": (
             "For each claim, decide whether the evidence directly supports it, "
             "contradicts it, or does not provide enough information. Use only the "
@@ -351,7 +366,9 @@ def verify_claims(question: str, answer: str, evidence: str) -> list[dict[str, A
             status = "NOT_ENOUGH_EVIDENCE"
         evidence_excerpt = str(match.get("evidence", "") or "").strip()
         reason = str(match.get("reason", "") or "").strip()
-        number_ok, number_reason = numeric_consistency(claim, evidence)
+        claim_index = index
+        claim_context = claim_evidence[claim_index] if source_records and claim_index < len(claim_evidence) else evidence
+        number_ok, number_reason = numeric_consistency(claim, claim_context)
         # Numeric checks can prevent an unsupported number being shown as supported.
         # They do not claim to be a replacement for a trained NLI classifier.
         if number_ok is False and status == "SUPPORTED":
@@ -361,13 +378,17 @@ def verify_claims(question: str, answer: str, evidence: str) -> list[dict[str, A
             # Keep model-declared contradiction if present; otherwise mark uncertainty
             # as contradicted only when the verifier independently says so.
             reason = (reason + " " + number_reason).strip()
+        if evidence_excerpt and evidence_excerpt not in claim_context:
+            evidence_excerpt = ""
         if not evidence_excerpt:
-            evidence_excerpt = best_evidence_for_claim(claim, evidence)
+            evidence_excerpt = best_evidence_for_claim(claim, claim_context)
+        selection_meta = claim_selections[claim_index] if source_records and claim_index < len(claim_selections) else None
         results.append({
             "claim": claim,
             "status": status,
             "evidence": evidence_excerpt,
             "reason": reason or "Instruction-model evidence assessment.",
+            "evidence_selection": selection_meta,
             "nli_label": "instruction_model_verifier",
             "confidence": None,
             "nli_confidence": None,
@@ -590,13 +611,14 @@ def run_rag(
     question: str,
     evidence: str,
     initial_answer_override: Optional[str] = None,
+    source_records: Optional[list[dict[str, Any]]] = None,
 ) -> dict[str, Any]:
     # The override is used only by the fixed, token-protected demonstration route.
     # Normal /api/ask requests never accept a caller-supplied initial answer.
     claim_check_mode = initial_answer_override is None and looks_like_claim_check(question)
     if initial_answer_override is not None:
         original_answer = initial_answer_override
-        claims = verify_claims(question, original_answer, evidence)
+        claims = verify_claims(question, original_answer, evidence, source_records)
     elif claim_check_mode:
         # Preserve the user's actual assertion as the thing being evaluated.
         original_answer = question
@@ -991,9 +1013,9 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
         ]
     elif mode == "web":
         sources = search_web_evidence(question)
-        evidence = "\n".join(
-            f"{source['title']}: {source['passage']}" for source in sources
-        )
+        initial_selection = select_evidence(question, sources, top_k=10)
+        sources = initial_selection["selected_sources"]
+        evidence = build_evidence_context(initial_selection, MAX_EVIDENCE_CHARS)
         if not evidence.strip():
             # A declarative claim (for example, "I'm Batman") should still be
             # shown and assessed as the user's claim when web retrieval finds no
@@ -1023,7 +1045,7 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="Unknown mode. Use manual, document, or web.")
 
     try:
-        result = run_rag(question, evidence)
+        result = run_rag(question, evidence, source_records=sources if mode == "web" else None)
         result["sources"] = sources
         return result
     except RuntimeError as exc:
