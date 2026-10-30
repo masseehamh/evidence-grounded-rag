@@ -1,6 +1,9 @@
 """Tests for explainable evidence ranking and source handling."""
+import json
 import unittest
+from unittest.mock import patch
 
+import app
 from evidence_selection import (
     assess_source_authority, domain_from_url, relevance_score, select_evidence,
 )
@@ -45,6 +48,34 @@ class EvidenceSelectionTests(unittest.TestCase):
         result = select_evidence("A claim", [])
         self.assertEqual(result["selected_sources"], [])
         self.assertEqual(result["candidate_count"], 0)
+
+    def test_verifier_receives_claim_specific_selected_evidence(self):
+        sources = [
+            {"title": "Ocean report", "url": "https://www.nasa.gov/climate",
+             "passage": "Ocean temperatures rise as greenhouse gases trap more heat."},
+            {"title": "Sports report", "url": "https://example.org/sports",
+             "passage": "The football team won its final match last Sunday."},
+        ]
+        response = {"claims": [{
+            "claim": "Ocean temperatures rise as greenhouse gases trap more heat.",
+            "status": "SUPPORTED",
+            "evidence": "Ocean temperatures rise as greenhouse gases trap more heat.",
+            "reason": "The passage directly supports the claim.",
+        }]}
+        with patch.object(app, "cloudflare_chat", return_value=json.dumps(response)) as model:
+            result = app.verify_claims(
+                "What causes ocean temperatures to rise?",
+                "Ocean temperatures rise as greenhouse gases trap more heat.",
+                "fallback evidence",
+                source_records=sources,
+            )
+        self.assertEqual(result[0]["status"], "SUPPORTED")
+        selection = result[0]["evidence_selection"]
+        self.assertEqual(selection["selected_sources"][0]["title"], "Ocean report")
+        self.assertEqual(selection["candidate_count"], 2)
+        sent_prompt = json.loads(model.call_args.args[0][1]["content"])
+        self.assertIn("evidence_by_claim", sent_prompt)
+        self.assertNotIn("Sports report", sent_prompt["evidence_by_claim"][0]["evidence"])
 
 
 if __name__ == "__main__":
