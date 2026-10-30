@@ -35,7 +35,9 @@ class ConversationRoutingTests(unittest.TestCase):
             result = app.api_ask(app.AskRequest(question="Who developed Python?", mode="web"))
         search.assert_called_once()
         rag.assert_called_once()
-        self.assertEqual(result["sources"], sources)
+        self.assertEqual(len(result["sources"]), 1)
+        self.assertEqual(result["sources"][0]["title"], "Python docs")
+        self.assertIn("selection_score", result["sources"][0])
 
     def test_model_failure_is_an_api_error_not_a_success_result(self):
         with patch.object(app, "respond_to_casual_statement", side_effect=RuntimeError("Cloudflare inference timed out.")):
