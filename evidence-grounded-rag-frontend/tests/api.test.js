@@ -22,6 +22,21 @@ test("normalizes a basic backend result and claim statuses", () => {
   assert.equal(result.claims[2].status, "NOT_ENOUGH_EVIDENCE");
 });
 
+test("preserves verifier reasons and explanations for the results page", () => {
+  const result = normalizeResult({
+    claims: [{
+      claim: "Incline push-ups help beginners build strength.",
+      status: "SUPPORTED",
+      evidence: "Incline push-ups are a progression.",
+      reason: "The cited passage directly describes incline push-ups as a beginner progression."
+    }]
+  });
+  assert.equal(
+    result.claims[0].reason,
+    "The cited passage directly describes incline push-ups as a beginner progression."
+  );
+});
+
 test("handles missing optional fields without inventing data", () => {
   const result = normalizeResult({});
   assert.equal(result.original_answer, "");
