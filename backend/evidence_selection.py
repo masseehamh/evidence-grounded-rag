@@ -207,7 +207,7 @@ def select_evidence(claim: str, sources: list[dict], top_k: int = 8) -> dict:
         if group_no:
             item["duplicate_group"] = f"dup-{group_no}"
             item["independent_corroboration"] = False
-            item["selection_reasons"].append("near-duplicate passage; not counted as independent corroboration")
+            item["selection_reasons"].append("near-identical passage; not counted as independent corroboration")
         else:
             item["duplicate_group"] = None
             item["independent_corroboration"] = True
@@ -224,12 +224,22 @@ def select_evidence(claim: str, sources: list[dict], top_k: int = 8) -> dict:
     selected = []
     seen_groups = set()
     for item in ranked:
+        # Do not pad the evidence context with passages that have no lexical
+        # relationship to this claim; unrelated snippets can mislead the verifier.
+        if item["relevance_score"] <= 0.0:
+            continue
         group = item.get("duplicate_group")
         if group and group in seen_groups:
             continue
-        selected.append(item)
         if group:
+            item["independent_corroboration"] = True
+            item["selection_reasons"] = [
+                reason for reason in item["selection_reasons"]
+                if "near-identical passage" not in reason
+            ]
+            item["selection_reasons"].append("best-ranked representative of a near-duplicate cluster")
             seen_groups.add(group)
+        selected.append(item)
         if len(selected) >= max(1, int(top_k)):
             break
 
