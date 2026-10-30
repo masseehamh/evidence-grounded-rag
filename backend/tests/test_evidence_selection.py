@@ -38,11 +38,12 @@ class EvidenceSelectionTests(unittest.TestCase):
         ]
         result = select_evidence("What causes ocean temperatures to rise?", sources, top_k=5)
         self.assertGreaterEqual(result["candidate_count"], 3)
-        self.assertEqual(len(result["selected_sources"]), 2)
+        self.assertEqual(len(result["selected_sources"]), 1)
         selected = result["selected_sources"][0]
         self.assertIn("selection_score", selected)
         self.assertTrue(selected["selection_reasons"])
-        self.assertFalse(any("duplicate" in " ".join(item["selection_reasons"]) for item in result["selected_sources"]))
+        self.assertTrue(selected["independent_corroboration"])
+        self.assertNotIn("not counted as independent corroboration", " ".join(selected["selection_reasons"]))
 
     def test_empty_sources_return_empty_selection(self):
         result = select_evidence("A claim", [])
