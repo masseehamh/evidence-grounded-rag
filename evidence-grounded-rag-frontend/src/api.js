@@ -166,7 +166,6 @@ export function normalizeResult(raw) {
     confidence: normalizeConfidence(item.confidence),
     nli_confidence: normalizeConfidence(item.nli_confidence ?? item.confidence),
     support_basis: item.support_basis ?? item.consistency?.support_basis ?? null,
-    evidence_selection: item.evidence_selection ?? null,
     consistency: item.consistency ?? item.numeric_entity_consistency ?? null
   })) : [];
   return {

@@ -40,15 +40,6 @@ function App() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
-    if (!mobileNavOpen) return undefined;
-    function handleNavigationKey(event) {
-      if (event.key === "Escape") setMobileNavOpen(false);
-    }
-    window.addEventListener("keydown", handleNavigationKey);
-    return () => window.removeEventListener("keydown", handleNavigationKey);
-  }, [mobileNavOpen]);
-
-  useEffect(() => {
     if (!isApiConfigured) {
       setBackendStatus("demo");
       return;
@@ -298,7 +289,7 @@ function HomePage({ onStart, onEvaluation, onBehind }) {
       </div>
       <p className="platform-disclaimer">Research prototype, not a guarantee of truth. Search snippets can be incomplete, models can make mistakes, and important claims should be checked against the original sources.</p>
     </section>
-    <div className="home-bottom"><div><span className="bottom-icon">✳</span><div><strong>Designed for transparency</strong><p>See supported, contradicted, and uncertain claims separately.</p></div></div><div className="home-bottom-actions"><button className="button button-ghost" onClick={onBehind}>Curious about the behind-scenes?</button><button className="button button-ghost" onClick={onEvaluation}>Test verification</button><button className="button button-primary" onClick={onStart}>New verification <span>→</span></button></div></div>
+    <div className="home-bottom"><div><span className="bottom-icon">✳</span><div><strong>Designed for transparency</strong><p>See supported, contradicted, and uncertain claims separately.</p></div></div><div className="home-bottom-actions"><button className="button button-ghost" onClick={onBehind}>Curious about the behind-the-scenes?</button><button className="button button-ghost" onClick={onEvaluation}>Test verification</button><button className="button button-primary" onClick={onStart}>New verification <span>→</span></button></div></div>
   </section>;
 }
 
@@ -363,12 +354,10 @@ function ResultsPage({ result, usedDemo, onAskAgain, backLabel = "← Back to qu
     <div className="claims-heading"><div><div className="eyebrow">CLAIM-BY-CLAIM BREAKDOWN</div><h2>Evidence and verification</h2><p>Each extracted claim is labelled with the available evidence and model signals.</p></div><span className="claim-count">{result.claims.length} claims</span></div>
     <div className="claim-list">{result.claims.length ? result.claims.map((claim, index) => <article className="claim-card panel" key={`${claim.claim}-${index}`}>
       <div className="claim-card-top"><div className="claim-number">{String(index + 1).padStart(2, "0")}</div><div className="claim-main"><div className="claim-label">EXTRACTED CLAIM</div><p className="claim-text">{claim.claim}</p></div><StatusPill status={claim.status} /></div>
-      <div className="claim-evidence"><div className="evidence-heading"><span>▤</span> Decisive evidence</div><p>{claim.evidence || "No supporting evidence was returned by the backend."}</p></div>
-      <div className="claim-verdict-reason"><strong>Why this verdict</strong><p>{claim.reason || "The verifier did not return an additional explanation for this claim."}</p></div>
-      {claim.evidence_selection && <details className="claim-details"><summary>Why these sources were selected</summary><div className="claim-metadata"><div><span className="metadata-label">SELECTION METHOD</span><strong>{claim.evidence_selection.selection_method || "Evidence ranking"}</strong><small>{claim.evidence_selection.selected_count || 0} selected from {claim.evidence_selection.candidate_count || 0} candidates · {claim.evidence_selection.independent_domain_count || 0} distinct domains</small></div></div><div className="source-list">{(claim.evidence_selection.selected_sources || []).map((source, sourceIndex) => <article className="source-card panel" key={source.source_id || sourceIndex}><span className="source-number">{String(sourceIndex + 1).padStart(2, "0")}</span><div><strong>{source.title}</strong><span className="source-kind">{source.authority_tier} · {source.trust_level}</span><small>Selection score: {source.selection_score} · Relevance: {source.relevance_score} · Authority: {source.authority_score}</small>{source.url && <a href={source.url} target="_blank" rel="noreferrer">{source.url} ↗</a>}<small>{(source.selection_reasons || []).join(" · ")}</small></div></article>)}</div><p className="source-kind">{claim.evidence_selection.score_disclaimer}</p></details>}
-      <details className="claim-details"><summary>Technical verification details</summary><div className="claim-metadata">
+      <div className="claim-evidence"><div className="evidence-heading"><span>▤</span> Supporting evidence</div><p>{claim.evidence || "No supporting evidence was returned by the backend."}</p></div>
+      <details className="claim-details"><summary>Verification details</summary><div className="claim-metadata">
         <div><span className="metadata-label">VERIFICATION METHOD</span><strong>Instruction-model verifier</strong><small>This deployment does not report a separately trained NLI classifier.</small></div>
-        <div><span className="metadata-label">NUMERIC CONSISTENCY CHECK</span><strong>{claim.consistency?.status || "Not available"}</strong><small>{claim.consistency?.details || claim.consistency?.message || "No consistency details returned."}</small></div>
+        <div><span className="metadata-label">NUMBER / ENTITY CHECK</span><strong>{claim.consistency?.status || "Not available"}</strong><small>{claim.consistency?.details || claim.consistency?.message || "No consistency details returned."}</small></div>
       </div></details>
     </article>) : <div className="empty-state panel">{insufficient
       ? "No claims were extracted, because the answer was withheld: the evidence did not contain enough information to answer the question, so there was nothing to verify."
