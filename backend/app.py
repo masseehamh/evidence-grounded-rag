@@ -223,6 +223,16 @@ def expand_search_query(question: str) -> str:
     return value
 
 
+def source_matches_question_topic(question: str, title: str, passage: str) -> bool:
+    """Reject search results that miss an explicit topic named by the question."""
+    source_text = f"{title} {passage}".lower()
+    # Push-up is the central subject of this common exercise query. Generic
+    # grammar pages can share incidental words but must mention the exercise.
+    if re.search(r"\bpush[- ]?ups?\b", question, flags=re.I):
+        return bool(re.search(r"\bpush[- ]?ups?\b", source_text))
+    return True
+
+
 def retrieval_score(question: str, passage: str) -> float:
     """Dependency-free relevance score combining coverage, phrase matches, and numbers."""
     q_words = content_words(question)
@@ -899,13 +909,13 @@ def search_web_evidence(question: str, max_results: int = 15) -> list[dict[str, 
         if normalized_url in seen_urls:
             continue
         seen_urls.add(normalized_url)
-        relevance = retrieval_score(
-            expanded_query,
-            f"{title}. {passage}",
-        )
-        # Search engines can return pages that match only a common word in the
-        # question. Never show those as evidence for the user's actual topic.
-        if relevance <= 0.0:
+        source_text = f"{title}. {passage}"
+        relevance = retrieval_score(expanded_query, source_text)
+        # Require an explicit match for named, specific topics. A generic word
+        # overlap (for example, "first" in a grammar article) is not enough.
+        if relevance <= 0.0 or not source_matches_question_topic(
+            query, title, passage
+        ):
             continue
         sources.append({
             "title": title,
