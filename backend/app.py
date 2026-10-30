@@ -187,8 +187,9 @@ STOP_WORDS = {
 
 
 def normalize_token(token: str) -> str:
-    """Normalize common English plurals and inflections without external NLP dependencies."""
-    token = token.lower().strip("'-")
+    """Normalize common English plurals, hyphenated terms, and inflections."""
+    # Treat push-up, push ups, and push-ups as the same concept.
+    token = token.lower().replace("-", "").strip("'\"")
     if len(token) > 5 and token.endswith("ies"):
         return token[:-3] + "y"
     if len(token) > 5 and token.endswith("ing"):
@@ -209,6 +210,17 @@ def content_words(text: str) -> set[str]:
         for token in re.findall(r"[A-Za-z][A-Za-z'-]*", text or "")
         if len(normalize_token(token)) > 2 and normalize_token(token) not in STOP_WORDS
     }
+
+
+def expand_search_query(question: str) -> str:
+    """Add focused vocabulary for common exercise questions without changing intent."""
+    value = (question or "").strip()
+    if re.search(r"push[- ]?ups?", value, flags=re.I):
+        return (
+            f"{value} beginner first full push-up progression incline push-ups "
+            "wall push-ups knee push-ups upper-body strength training"
+        )
+    return value
 
 
 def retrieval_score(question: str, passage: str) -> float:
@@ -845,10 +857,11 @@ def search_web_evidence(question: str, max_results: int = 15) -> list[dict[str, 
         return []
 
     # Different formulations help when a natural-language question gets poor results.
+    expanded_query = expand_search_query(query)
     queries = list(dict.fromkeys([
-        query,
-        f"{query} official guidance",
-        f"{query} health fitness exercise",
+        expanded_query,
+        f"{expanded_query} evidence-based guidance",
+        f"{expanded_query} exercise technique training progression",
     ]))
     gathered: list[dict[str, Any]] = []
     successful_searches = 0
@@ -886,6 +899,14 @@ def search_web_evidence(question: str, max_results: int = 15) -> list[dict[str, 
         if normalized_url in seen_urls:
             continue
         seen_urls.add(normalized_url)
+        relevance = retrieval_score(
+            expanded_query,
+            f"{title}. {passage}",
+        )
+        # Search engines can return pages that match only a common word in the
+        # question. Never show those as evidence for the user's actual topic.
+        if relevance <= 0.0:
+            continue
         sources.append({
             "title": title,
             "url": url,
@@ -895,10 +916,13 @@ def search_web_evidence(question: str, max_results: int = 15) -> list[dict[str, 
                 else "unverified_domain"
             ),
             "passage": passage,
+            "relevance_score": relevance,
         })
 
-    # Prefer official/primary sources first, then other accepted HTTPS results.
+    # Topic relevance comes before publisher tier. A trusted but unrelated page
+    # must never outrank a relevant source simply because of its domain.
     sources.sort(key=lambda source: (
+        -source["relevance_score"],
         0 if source["trust_level"] == "allowlisted_domain_unverified_page" else 1,
         source_priority(source["domain"]),
     ))
