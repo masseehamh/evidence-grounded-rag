@@ -20,7 +20,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from ddgs import DDGS
 
-from evidence_selection import select_evidence, build_evidence_context
+try:
+    from .evidence_selection import select_evidence, build_evidence_context
+except ImportError:  # Supports running uvicorn with backend as the working directory.
+    from evidence_selection import select_evidence, build_evidence_context
 
 APP_VERSION = "2.0.0"
 DEFAULT_MODEL = "@cf/zai-org/glm-4.7-flash"
@@ -633,7 +636,10 @@ def run_rag(
     claim_check_mode = initial_answer_override is None and looks_like_claim_check(question)
     if initial_answer_override is not None:
         original_answer = initial_answer_override
-        claims = verify_claims(question, original_answer, evidence, source_records)
+        claims = (
+            verify_claims(question, original_answer, evidence, source_records)
+            if source_records else verify_claims(question, original_answer, evidence)
+        )
     elif claim_check_mode:
         # Preserve the user's actual assertion as the thing being evaluated.
         original_answer = question
