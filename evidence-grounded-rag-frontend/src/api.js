@@ -162,6 +162,7 @@ export function normalizeResult(raw) {
     claim: String(item.claim ?? item.text ?? "Claim text unavailable"),
     status: normalizeStatus(item.status ?? item.label),
     evidence: item.evidence ?? item.supporting_evidence ?? "",
+    reason: String(item.reason ?? item.explanation ?? "").trim(),
     nli_label: item.nli_label ?? item.nli_verification_label ?? null,
     confidence: normalizeConfidence(item.confidence),
     nli_confidence: normalizeConfidence(item.nli_confidence ?? item.confidence),
