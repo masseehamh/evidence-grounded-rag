@@ -977,6 +977,7 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="Please enter a question.")
     mode = (payload.mode or "manual").lower().strip()
     sources: list[dict[str, str]] = []
+    candidate_sources: list[dict[str, Any]] = []
 
     # Casual conversation should work in every UI mode, without requiring evidence
     # or turning ordinary statements into failed web-search results.
@@ -1033,8 +1034,8 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
             for passage, _score in passages
         ]
     elif mode == "web":
-        sources = search_web_evidence(question)
-        initial_selection = select_evidence(question, sources, top_k=10)
+        candidate_sources = search_web_evidence(question)
+        initial_selection = select_evidence(question, candidate_sources, top_k=10)
         sources = initial_selection["selected_sources"]
         evidence = build_evidence_context(initial_selection, MAX_EVIDENCE_CHARS)
         if not evidence.strip():
@@ -1066,7 +1067,10 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="Unknown mode. Use manual, document, or web.")
 
     try:
-        result = run_rag(question, evidence, source_records=sources)
+        result = run_rag(
+            question, evidence,
+            source_records=candidate_sources if mode == "web" else sources,
+        )
         result["sources"] = sources
         return result
     except RuntimeError as exc:
