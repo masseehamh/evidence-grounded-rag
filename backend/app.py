@@ -996,6 +996,10 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
                 status_code=413,
                 detail=f"Evidence is too long. Maximum is {MAX_EVIDENCE_CHARS} characters.",
             )
+        sources = [{
+            "title": "User-provided evidence", "url": "", "passage": evidence,
+            "source_type": "uploaded_document",
+        }]
     elif mode == "document":
         if not payload.document_id or payload.document_id not in API_DOCUMENTS:
             raise HTTPException(
@@ -1008,7 +1012,8 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
             return make_insufficient_response()
         evidence = "\n".join(item[0] for item in passages)
         sources = [
-            {"title": document["filename"], "url": "", "passage": passage}
+            {"title": document["filename"], "url": "", "passage": passage,
+             "source_type": "uploaded_document"}
             for passage, _score in passages
         ]
     elif mode == "web":
@@ -1045,7 +1050,7 @@ def api_ask(payload: AskRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="Unknown mode. Use manual, document, or web.")
 
     try:
-        result = run_rag(question, evidence, source_records=sources if mode == "web" else None)
+        result = run_rag(question, evidence, source_records=sources)
         result["sources"] = sources
         return result
     except RuntimeError as exc:
