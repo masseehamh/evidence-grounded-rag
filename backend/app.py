@@ -932,14 +932,15 @@ def search_web_evidence(question: str, max_results: int = 15) -> list[dict[str, 
                 else "unverified_domain"
             ),
             "passage": passage,
+            "published_date": str(item.get("date") or item.get("published") or ""),
+            "author": str(item.get("author") or ""),
+            "source_type": "web",
         })
 
-    # Prefer official/primary sources first, then other accepted HTTPS results.
-    sources.sort(key=lambda source: (
-        0 if source["trust_level"] == "allowlisted_domain_unverified_page" else 1,
-        source_priority(source["domain"]),
-    ))
-    return sources[:max_results]
+    # Do not discard potentially relevant sources merely because their domains
+    # have a lower trust tier. The claim-aware selector scores relevance and
+    # authority separately across this broader candidate pool.
+    return sources[:max_results * 2]
 
 
 @app.get("/health")
